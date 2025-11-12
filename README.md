@@ -88,7 +88,10 @@ The classes are described as follows:
 </p>
 
 
-## 📦 Environment
+## 📦Code and Environment
+[Code]([https://ftp.icgc.cat/?u=rDuQn&p=w34gb](https://github.com/marionacaros/terlidar))
+
+Environment:
 - Python 3.9+
 - PyTorch 1.12+ with CUDA 11.x (recommended)
 
