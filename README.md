@@ -89,7 +89,7 @@ The classes are described as follows:
 
 
 ## 📦Code and Environment
-[Code]([https://ftp.icgc.cat/?u=rDuQn&p=w34gb](https://github.com/marionacaros/terlidar))
+[Code here](https://github.com/marionacaros/terlidar)
 
 Environment:
 - Python 3.9+
