@@ -8,7 +8,7 @@
 
 ## ⬇️ TerLiDAR Dataset Download
 
-[Download TerLiDAR Dataset](https://ftp.icgc.cat/?u=rDuQn&p=w34gb)
+[Download LAS files of TerLiDAR Dataset](https://ftp.icgc.cat/?u=rDuQn&p=w34gb)
 
 ## 💡 Overview
 This repository contains code and assets accompanying the paper:
