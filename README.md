@@ -6,6 +6,10 @@
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)]()
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.12%2B-red.svg)]()
 
+## TerLiDAR Dataset Download
+
+[Download TerLiDAR Dataset](https://ftp.icgc.cat/?u=rDuQn&p=w34gb)
+
 ## 💡 Overview
 This repository contains code and assets accompanying the paper:
 > **Efficient Task and Domain Adaptation in ALS Semantic Segmentation via LoRA for PointNet++**  
