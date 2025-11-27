@@ -1,4 +1,4 @@
-# LoRA for PointNet++ in Airborne LiDAR Semantic Segmentation
+# TerLiDAR Dataset & Our work in LoRA for PointNet++ in Airborne LiDAR Semantic Segmentation
 
 > Parameter‑efficient fine‑tuning (LoRA) for 3D point cloud semantic segmentation with PointNet++, evaluated on airborne LiDAR datasets.
 
