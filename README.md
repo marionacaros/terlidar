@@ -61,6 +61,10 @@ We present TerLiDAR, a fully open and annotated airborne LiDAR dataset that cove
   </em>
 </p>
 
+<p align="center">
+  <img src="figs/categories_table.png" alt="Model teaser" width="100%">
+</p>
+
 The classes are described as follows:
 1. **Default** – Points that could not be classified during the classification process.  
 2. **Ground** – Points belonging to the terrain.  
@@ -73,10 +77,10 @@ The classes are described as follows:
 9. **Air points** – Points detected above the terrain, often spurious returns.  
 10. **Other ground points** – Points near the ground, such as those pertaining to grass, that could not be classified as ground.  
 11. **Power lines** – Points representing electric power lines.  
-12. **Transmission tower** – Points on electrical towers.  
-13. **Walls** – Points belonging mostly to building façades.  
+12. **Transmission tower** – Points representing electrical towers.  
+13. **Façade** – Points belonging mostly to building façades.  
 14. **Above buildings** – Points located above buildings, such as chimneys, solar panels, or awnings.  
-15. **Other towers** – Points corresponding to towers not classified as electric towers (e.g., wind turbines, observation towers).  
+15. **Other towers** – Points corresponding to towers not classified as transmission towers (e.g. observation towers). 
 16. **Noise** – Points identified as noise produced by the sensor.  
 
 
