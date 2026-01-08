@@ -74,14 +74,14 @@ The classes are described as follows:
 6. **Buildings** – Points generally classified on building rooftops.  
 7. **Low Points** – Points with negative height relative to the ground, usually sensor noise.  
 8. **Ground key points** – Simplified points previously classified as ground (Class 2), used for constructing the Digital Terrain Model.  
-9. **Air points** – Points detected above the terrain, often spurious returns.  
-10. **Other ground points** – Points near the ground, such as those pertaining to grass, that could not be classified as ground.  
-11. **Power lines** – Points representing electric power lines.  
-12. **Transmission tower** – Points representing electrical towers.  
-13. **Façade** – Points belonging mostly to building façades.  
-14. **Above buildings** – Points located above buildings, such as chimneys, solar panels, or awnings.  
-15. **Other towers** – Points corresponding to towers not classified as transmission towers (e.g. observation towers). 
-16. **Noise** – Points identified as noise produced by the sensor.  
+11. **Air points** – Points detected above the terrain, often spurious returns.  
+13. **Other ground points** – Points near the ground, such as those pertaining to grass, that could not be classified as ground.  
+14. **Power lines** – Points representing electric power lines.  
+15. **Transmission tower** – Points representing electrical towers.  
+16. **Façade** – Points belonging mostly to building façades.  
+17. **Above buildings** – Points located above buildings, such as chimneys, solar panels, or awnings.  
+18. **Other towers** – Points corresponding to towers not classified as transmission towers (e.g. observation towers). 
+135. **Noise** – Points identified as noise produced by the sensor.  
 
 
 <p align="center">
