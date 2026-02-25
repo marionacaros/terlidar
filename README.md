@@ -16,7 +16,7 @@ This repository contains code and assets accompanying the paper:
 > **Efficient Task and Domain Adaptation in ALS Semantic Segmentation via LoRA for PointNet++**  
 Semantic segmentation of airborne LiDAR point clouds enables a broad range of urban and environmental applications. However, domain shifts between training and operational data, as well as the frequent emergence of new semantic classes, pose significant challenges for deploying deep learning models effectively. In this work, we explore the integration of Low-Rank Adaptation (LoRA), a parameter-efficient fine-tuning technique, into the PointNet++ architecture to address these challenges. We evaluate LoRA in two realistic scenarios: domain adaptation and incremental learning with novel classes, using large-scale LiDAR datasets. Our experiments demonstrate that LoRA achieves superior performance compared to traditional full fine-tuning, showing greater resistance to catastrophic forgetting and improved generalization, particularly for underrepresented classes. Furthermore, LoRA maintains or exceeds baseline accuracy with substantially fewer trainable parameters, highlighting its suitability for resource-constrained deployment scenarios. We also present TerLiDAR, a publicly available annotated airborne LiDAR dataset, to support further research in domain adaptation for remote sensing.
 
-> 📄 **Paper link**: [Read the paper on ScienceDirect](https://www.sciencedirect.com/science/article/pii/S2667393226000050?via%3Dihub)
+📄 **Paper link**: [Read the paper on ScienceDirect](https://www.sciencedirect.com/science/article/pii/S2667393226000050?via%3Dihub)
 
 
 <p align="center">
