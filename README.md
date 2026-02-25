@@ -8,10 +8,8 @@
 
 ## ⬇️ TerLiDAR Dataset Download
 
-[FTP link to download LAS files of TerLiDAR dataset](https://ftp.icgc.cat/?u=caFYF&p=tGAk7)
-
-If FTP link does not work use the following link:
-[LAS files of TerLiDAR dataset](https://drive.google.com/drive/folders/1YjdE5I96_zE1k8Ve6XN9y1jfqgiZZTEg?usp=sharing)
+Please respond to the form to receive the link to download the dataset:
+[Link to form](https://docs.google.com/forms/d/e/1FAIpQLSfegWcIX8sTO9ordN91-pYJaLgRlv5eIx3mUzf8BNONHbjWKw/viewform?usp=header)
 
 ## 💡 Overview
 This repository contains code and assets accompanying the paper:
