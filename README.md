@@ -49,7 +49,7 @@ PN++ architecture. Set Abstraction (SA) layers sample input points, group them, 
 
 
 ### TerLiDAR Dataset
-We present TerLiDAR, a fully open and annotated airborne LiDAR dataset that covers 51.4~km\textsuperscript{2} of urban and forested areas along the Ter River in Catalonia, Spain. The data were acquired in July 2021 using an ALS system mounted on a georeferenced aircraft operated by ICGC. The dataset comprises 692 million colorized 3D points, each annotated with one of the semantic classes listed in the paper.
+We present TerLiDAR, a fully open and annotated airborne LiDAR dataset that covers 51.4 km² of urban and forested areas along the Ter River in Catalonia, Spain. The data were acquired in July 2021 using an ALS system mounted on a georeferenced aircraft operated by ICGC. The dataset comprises 692 million colorized 3D points, each annotated with one of the semantic classes listed in the paper.
 
 <p align="center">
   <img src="figs/overview.PNG" alt="TerLiDAR coverage area" width="100%">
