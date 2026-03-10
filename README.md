@@ -93,6 +93,17 @@ The classes are described as follows:
   </em>
 </p>
 
+**Proposed Split**
+## 📊 Proposed Data Split
+
+To ensure reproducible results and a fair evaluation of the model, we propose the following split between training and testing data:
+
+| Split Type | Block IDs | Description |
+| :--- | :--- | :--- |
+| **Test Set** | `pt438656`, `pt438652`, `pt438658` | Held-out blocks for final evaluation. |
+| **Train Set** | *All remaining blocks* | Used for model optimization and cross-validation. |
+
+> Please adhere to this split when reporting results to ensure benchmarks remain comparable across different runs.
 
 ## 📦Code and Environment
 [Code here](https://github.com/marionacaros/terlidar)
