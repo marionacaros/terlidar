@@ -3,8 +3,11 @@
 > Parameter‑efficient fine‑tuning (LoRA) for 3D point cloud semantic segmentation with PointNet++, evaluated on airborne LiDAR datasets.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](#license)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)]()
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.12%2B-red.svg)]()
+
+
 
 ## ⬇️ TerLiDAR Dataset Download
 
@@ -117,7 +120,13 @@ Quick setup:
 conda create -n lora-pn2 python=3.10 -y
 conda activate lora-pn2
 pip install -r requirements.txt
+```
 
+## License
+This project is dual-licensed:
+* **Code**: Licensed under the [MIT License](LICENSE).
+* **Data/Weights**: The TerLiDAR dataset and pre-trained weights are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+  
 ## Git Hub Pages
 [Git Hub Pages](https://marionacaros.github.io/terlidar)
 
