@@ -119,4 +119,6 @@ conda activate lora-pn2
 pip install -r requirements.txt
 
 ## Git Hub Pages
-[https://marionacaros.github.io/terlidar/](https://marionacaros.github.io/terlidar/)
+[Git Hub Pages](https://marionacaros.github.io/terlidar)
+
+
