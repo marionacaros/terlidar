@@ -117,3 +117,6 @@ Quick setup:
 conda create -n lora-pn2 python=3.10 -y
 conda activate lora-pn2
 pip install -r requirements.txt
+
+## Git Hub Pages
+[https://marionacaros.github.io/terlidar/](https://marionacaros.github.io/terlidar/)
