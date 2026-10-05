@@ -11,6 +11,33 @@ from scipy.spatial import cKDTree
 import math
 
 
+def read_file_list(list_path, data_root=None):
+    """
+    Read a text file with one point cloud path per line.
+
+    The lists in train_test_files/ store the absolute paths used on the machine where the paper
+    experiments were run. Pass data_root to load the same files from another location: each path
+    is replaced by <data_root>/<file name>, or by <data_root>/<parent folder>/<file name> when
+    that sub-folder (e.g. train, val, test) exists inside data_root.
+
+    :param list_path: str, path to the .txt list
+    :param data_root: str or None, directory containing the preprocessed .pt files
+    :return: list of str
+    """
+    with open(list_path, 'r') as f:
+        files = f.read().splitlines()
+
+    if data_root:
+        remapped = []
+        for path in files:
+            sub_dir = os.path.join(data_root, os.path.basename(os.path.dirname(path)))
+            base_dir = sub_dir if os.path.isdir(sub_dir) else data_root
+            remapped.append(os.path.join(base_dir, os.path.basename(path)))
+        files = remapped
+
+    return files
+
+
 def set_seed(seed):
     """
     Seed the Python, NumPy and PyTorch random number generators.

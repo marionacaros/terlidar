@@ -209,6 +209,10 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=str, default='cuda', help='device to be used, cuda or cpu')
     parser.add_argument('--num_classes', type=int, default=4, help='number of classes')
 
+    parser.add_argument('--data_root', type=str, default=None,
+                        help='directory with the preprocessed .pt files; overrides the directories stored in the file lists')
+    parser.add_argument('--tiles', type=str, nargs='+', default=None,
+                        help='tiles (blocks) to evaluate; default: pt438656 pt438652 pt438658 pt440652')
     parser.add_argument('--seed', type=int, default=0, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
     set_seed(args.seed)
@@ -234,8 +238,7 @@ if __name__ == '__main__':
         os.makedirs(args.output_dir)
     
     # Data B29
-    with open(os.path.join(args.in_path, 'test_files.txt'), 'r') as f:
-        test_files = f.read().splitlines()
+    test_files = read_file_list(os.path.join(args.in_path, 'test_files.txt'), args.data_root)
 
     # Define file path
     file_path = os.path.join(args.output_dir, 'IoU-results-%s.csv' % MODEL_NAME)
@@ -254,7 +257,7 @@ if __name__ == '__main__':
     # tiles = set([path_f.split('_')[-2].split('.')[0] for path_f in test_files])
     # tiles = list(tiles)
 
-    tiles=["pt438656", "pt438652", "pt438658","pt440652"] # RIB
+    tiles = args.tiles or ["pt438656", "pt438652", "pt438658","pt440652"] # RIB
     tiles.sort()
 
     logging.info(f"Number of tiles: {len(tiles)}")
