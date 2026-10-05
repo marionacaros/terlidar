@@ -5,9 +5,10 @@ import logging
 import datetime
 from prettytable import PrettyTable
 import random
+import os
 import sys
 
-sys.path.append('/home/m.caros/work/3DSemanticSegmentation')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))  # repository root
 from src.datasets import DalesDataset
 from src.LoRA.models.lora_pointnet2_params import *
 from src.config import *
@@ -343,7 +344,6 @@ if __name__ == '__main__':
                         default='src/LoRA/checkpoints_lidarcat/seg_02-10-11:21_base_NOclassifier.pt',
                         type=str, help='models checkpoint path')
 
-    sys.path.append('/home/m.caros/work/3DSemanticSegmentation/')
 
     args = parser.parse_args()
 

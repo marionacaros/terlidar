@@ -1,14 +1,12 @@
 import argparse
 from tqdm import tqdm
 import sys
-sys.path.append('/home/m.caros/work/3DSemanticSegmentation')
 from utils.utils import *
 import time
 import random
 import multiprocessing
 import logging
 import csv
-from proc_adjacent_tiles import *
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     level=logging.INFO,
@@ -85,16 +83,6 @@ def parallel_proc(files_list, num_cpus):
     # Use tqdm with imap_unordered
     with tqdm(total=len(files_list)) as pbar:
         for _ in p.imap_unordered(split_pointcloud, files_list):
-            pbar.update(1)  # Update progress bar for each completed task
-    p.close()
-    p.join()
-
-
-def parallel_adj_pairs(pairs, num_cpus):
-    p = multiprocessing.Pool(processes=num_cpus)
-    # Use tqdm with imap_unordered
-    with tqdm(total=len(pairs)) as pbar:
-        for _ in p.imap_unordered(split_overlap, pairs):
             pbar.update(1)  # Update progress bar for each completed task
     p.close()
     p.join()
