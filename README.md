@@ -204,7 +204,7 @@ TerLiDAR experiments) and only needs the preprocessed windows. Steps 2 and 3 ret
 
 The learning rates below are the ones stored inside the shipped checkpoints. They differ from
 the defaults of the scripts, so they have to be passed explicitly. Training on GPU is not
-bit-for-bit repeatable (see `TODO.md`), so retrained models will be close to, not identical
+bit-for-bit repeatable (cuDNN is left non-deterministic), so retrained models will be close to, not identical
 to, the shipped ones.
 
 **1. Preprocess** the LAS tiles into windows (80 m windows, 8000 points):
@@ -214,8 +214,8 @@ python proc_no_ground.py --in_path /path/to/LAS_tiles --out_path /path/to/RIB_wi
 ```
 
 The dataset tag written into the file names is the constant `DATASET_NAME` in `main()` of
-`proc_no_ground.py`; set it to `RIB` (or `B29`) before running. See `TODO.md` for the
-preprocessing settings that could not be recovered from the repository.
+`proc_no_ground.py`; set it to `RIB` (or `B29`) before running. The exact
+preprocessing command of the published windows is not recorded in the repository.
 
 **2. Baseline** PointNet++ on the source domain (B29):
 
@@ -259,7 +259,8 @@ python src/LoRA/test_lora_segmentation.py --dataset B29 --data_root /path/to/B29
 ```
 
 By default the TerLiDAR evaluation runs on blocks `pt438656`, `pt438652`, `pt438658` and
-`pt440652`. Add `--tiles pt438656 pt438652 pt438658` to evaluate exactly the proposed test split.
+`pt440652`. The last one is a very small block, which is why the proposed split does not list
+it. Add `--tiles pt438656 pt438652 pt438658` to evaluate exactly the proposed test split.
 Evaluation draws random groupings of the points, so use the same `--seed` (default 0) to
 compare runs.
 
