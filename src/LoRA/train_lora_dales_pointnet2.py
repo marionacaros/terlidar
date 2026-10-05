@@ -105,7 +105,7 @@ def train(
                              num_feat, 
                              lora_fix_rank=lora_fix_rank, 
                              lora_max_rank=lora_max_rank,
-                             lora_alpha=1,
+                             alpha=1,
                              radius=[0.1, 0.2, 0.4, 0.8])
 
     # print models and parameters

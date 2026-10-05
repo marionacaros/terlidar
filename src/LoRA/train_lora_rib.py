@@ -165,6 +165,8 @@ def train(
         c_weights = [0.1, 0.2,  0.2]
     elif n_classes == 4:    
         c_weights = [0.1, 0.2,  0.2,  0.2]
+    else:
+        raise ValueError(f'No class weights defined for {n_classes} classes (supported: 3 or 4)')
     
     c_weights = torch.tensor(c_weights).float().to(device)
 
@@ -202,7 +204,7 @@ def train(
             count+=1
         pointnet.load_state_dict(my_model_kvpair)
 
-        pointnet.to(device)
+    pointnet.to(device)
 
     # count_parameters(pointnet)
 
