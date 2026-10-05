@@ -39,7 +39,8 @@ def train(
         lora_alpha=1,
         data_root=None,
         checkpoint_dir='src/LoRA/checkpoints_lidarcat',
-        log_dir='src/runs/lora'):
+        log_dir='src/runs/lora',
+        params_log_dir='src/LoRA/logs'):
     
     start_time = time()
 
@@ -155,8 +156,8 @@ def train(
     # print(table)
 
     # Export table to a text file
-    os.makedirs("src/LoRA/logs", exist_ok=True)
-    with open("src/LoRA/logs/" + NAME + ".txt", "w") as f:
+    os.makedirs(params_log_dir, exist_ok=True)
+    with open(os.path.join(params_log_dir, NAME + ".txt"), "w") as f:
         f.write(f"Total Params: {total_params}\n")
         f.write(f"Min rank: {pointnet.min_rank}\n")
         f.write(f"Max rank: {pointnet.max_rank}\n")
@@ -413,6 +414,8 @@ if __name__ == '__main__':
                         help='directory where checkpoints are saved')
     parser.add_argument('--log_dir', type=str, default='src/runs/lora',
                         help='directory for TensorBoard logs')
+    parser.add_argument('--params_log_dir', type=str, default='src/LoRA/logs',
+                        help='directory where the table of model parameters is written')
     parser.add_argument('--seed', type=int, default=5, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
     set_seed(args.seed)
@@ -432,4 +435,5 @@ if __name__ == '__main__':
         lora_alpha=args.lora_alpha,
         data_root=args.data_root,
         checkpoint_dir=args.checkpoint_dir,
-        log_dir=args.log_dir)
+        log_dir=args.log_dir,
+        params_log_dir=args.params_log_dir)
