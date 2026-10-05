@@ -1,3 +1,8 @@
+"""Convert preprocessed .pt windows back to LAS, one file per tile.
+
+All windows in --input_dir whose name contains the same tile id (second to last ``_`` field of
+the file name) are concatenated and written to <output_dir>/<tile>.las. Requires ``pylas``.
+"""
 import glob
 import numpy as np
 import torch
@@ -9,6 +14,14 @@ import pylas
 
 
 def store_las(array, output_dir, f_name='predictions.las'):
+    """
+    Write points to a LAS 1.4 file (point format 8).
+
+    :param array: [points, 12] with the columns of the .pt windows; z is taken from column 10
+        (normalised height above ground) and intensity and colours are scaled back
+    :param output_dir: directory of the output file
+    :param f_name: name of the output file
+    """
     # Store LAS
     # 1. Create a new header
     las = pylas.create(point_format_id=8, file_version="1.4")

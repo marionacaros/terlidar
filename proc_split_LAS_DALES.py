@@ -1,3 +1,14 @@
+"""Preprocess DALES LAS tiles into windows for training.
+
+For the ``train`` and ``test`` sub-folders of --LAS_files_path, each tile is cut into
+non-overlapping windows of --w_size metres and every non-empty window is saved to
+<out_path>/<train|test>/<tile>_w<window index>.pt as a float tensor with columns
+x, y, z, classification, return_number, number_of_returns. Points of class 0 (undefined) are
+dropped.
+
+Run from the repository root:
+    python proc_split_LAS_DALES.py --LAS_files_path <dir with train/ and test/> --out_path <output dir>
+"""
 import argparse
 from utils.utils import *
 import logging
@@ -12,6 +23,7 @@ global SAVE_PATH, W_SIZE, LAS_files_path
 
 
 def parallel_proc(files_list, num_cpus):
+    """Run split_dataset_windows on every file with a pool of num_cpus processes."""
     p = multiprocessing.Pool(processes=num_cpus)
 
     for _ in progressbar(p.imap_unordered(split_dataset_windows, files_list, 1),
@@ -22,6 +34,11 @@ def parallel_proc(files_list, num_cpus):
 
 
 def split_dataset_windows(file):
+    """
+    Cut one DALES LAS tile into windows and store them as .pt files in the global SAVE_PATH.
+
+    :param file: path of the .las tile
+    """
     i_w = 0
     name_f = file.split('/')[-1].split('.')[0]
     las_pc = laspy.read(file)
