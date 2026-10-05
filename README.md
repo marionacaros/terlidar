@@ -124,7 +124,7 @@ pip install -r requirements.txt
 
 ## License
 This project is dual-licensed:
-* **Code**: Licensed under the [MIT License](LICENSE).
+* **Code**: Licensed under the [MIT License](LICENSE.txt).
 * **Data/Weights**: The TerLiDAR dataset and pre-trained weights are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
   
 ## Git Hub Pages
