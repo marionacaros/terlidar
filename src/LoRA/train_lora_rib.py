@@ -18,7 +18,6 @@ from utils.get_metrics import *
 from utils.utils_plot import plot_pc_tensorboard
 from src.LoRA.models.utils import *
 
-random.seed(5)
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     level=logging.INFO,
                     datefmt='%Y-%m-%d %H:%M:%S')
@@ -406,7 +405,9 @@ if __name__ == '__main__':
     
 
 
+    parser.add_argument('--seed', type=int, default=5, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
+    set_seed(args.seed)
 
     train(
         args.in_paths,

@@ -11,6 +11,18 @@ from scipy.spatial import cKDTree
 import math
 
 
+def set_seed(seed):
+    """
+    Seed the Python, NumPy and PyTorch random number generators.
+
+    :param seed: int
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+
 # -----------------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------------- Preprocessing ----------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------------------------

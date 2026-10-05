@@ -217,7 +217,9 @@ if __name__ == '__main__':
     parser.add_argument('--lora_alpha', type=int, default=16, help='LoRa alpha')
     parser.add_argument('--plot_preds', type=bool, default=False, help='plot predictions')
 
+    parser.add_argument('--seed', type=int, default=0, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
+    set_seed(args.seed)
     logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                         level=logging.DEBUG,
                         datefmt='%Y-%m-%d %H:%M:%S')
