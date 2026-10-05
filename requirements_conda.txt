@@ -1,4 +1,4 @@
-# packages in environment at /home/m.caros/anaconda3/envs/pytorch10:
+# packages in the conda environment used for the paper (conda list --export style):
 #
 # Name                    Version                   Build  Channel
 _anaconda_depends         2024.06             py310_mkl_2  

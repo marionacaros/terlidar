@@ -50,15 +50,18 @@ def main():
     parser.add_argument('--stride', default=10)
     parser.add_argument('--max_height', type=float, default=200.0)
     parser.add_argument('--max_intensity', type=float, default=5000.0)
+    parser.add_argument('--hag_path', type=str, default=None,
+                        help="directory with the LAS files that carry HeightAboveGround; only read when DATASET_NAME is 'EMP'")
 
     args = parser.parse_args()
     start_time = time.time()
 
-    global OUT_PATH, W_SIZE, MAX_Z, MAX_I, STORE_DOUBLE, DATASET_NAME, MAX_N_PTS, NUM_CPUS, N_POINTS, MAX_H, STRIDE
+    global OUT_PATH, W_SIZE, MAX_Z, MAX_I, STORE_DOUBLE, DATASET_NAME, MAX_N_PTS, NUM_CPUS, N_POINTS, MAX_H, STRIDE, HAG_PATH
     NUM_CPUS = 16
 
     STORE_DOUBLE = True
     OUT_PATH = args.out_path
+    HAG_PATH = args.hag_path
     DATASET_NAME = 'Z31' #OUT_PATH.split('/')[-1].split('_')[0]
     N_POINTS = args.n_points
     W_SIZE = args.w_size
@@ -129,7 +132,7 @@ def split_pointcloud(f):
     :param f: file path
     """
 
-    f_name = f.split('/')[-1].split('.')[0]  # /mnt/Lidar_M/DEMO_Productes_LIDARCAT3/LAS_def/505679.las
+    f_name = f.split('/')[-1].split('.')[0]  # e.g. <in_path>/505679.las -> 505679
 
     data_f = laspy.read(f)
 
@@ -167,7 +170,7 @@ def split_pointcloud(f):
                                 data_f.blue / 65536.0,  # 7
                                 data_f.nir / 65536.0,  # 8
                                 ))
-                data_f = laspy.read('/dades/LIDAR/towers_detection/LAS_CAT3_HAG/' + f_name + '.las')
+                data_f = laspy.read(os.path.join(HAG_PATH, f_name + '.las'))
                 pc2 = np.vstack((np.zeros(len(data_f.x)),  # 9  NDVI
                                  data_f.HeightAboveGround / MAX_H,  # 10  HAG
                                 np.arange(len(data_f.x)) # 11  ID
@@ -206,7 +209,7 @@ def split_pointcloud(f):
             return
 
         # Guardar en CSV
-        # OUTPUT_CSV = "/dades/LIDAR/towers_detection/Z31_distance_values.csv"
+        # OUTPUT_CSV = "Z31_distance_values.csv"
         # with open(OUTPUT_CSV, mode="a", newline="") as file:
             # writer = csv.writer(file)
             # writer.writerow([f_name, min_distance, max_distance, pc[:, 0].min(), pc[:, 0].max(), pc[:, 1].min(), pc[:, 1].max(), pc[:, 2].min(), pc[:, 2].max()])

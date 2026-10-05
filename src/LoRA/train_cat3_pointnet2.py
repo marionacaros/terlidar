@@ -59,7 +59,7 @@ def train(
     :param num_feat: input channels per point
     :param num_classes: 3, 4 or 5; wind turbines are a class of their own when > 3
     :param device: 'cuda' or 'cpu'
-    :param data_root: directory with the .pt windows, overriding the directories in the lists
+    :param data_root: directory with the .pt windows, that the entries of the file lists are relative to
     :param n_points: points per window returned by the dataset (train_loop then uses 4096 of them)
     :param batch_size: batch size
     :param epochs: number of epochs
@@ -386,7 +386,6 @@ def train_loop(data, optimizer, loss, pointnet, w_tensorboard=None, train=True,
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--in_paths', type=str,
-                        # default='train_test_files/B29_80x80_QPcot')  
                         default='train_test_files/RIB_smallLoRA_80x80')
     parser.add_argument('--num_points', type=int, default=8000, help='number of points per cloud')
     parser.add_argument('--batch_size', type=int, default=100, help='batch size')
@@ -400,7 +399,7 @@ if __name__ == '__main__':
 
 
     parser.add_argument('--data_root', type=str, default=None,
-                        help='directory with the preprocessed .pt files; overrides the directories stored in the file lists')
+                        help='directory with the preprocessed .pt files; the entries of the file lists are relative to it')
     parser.add_argument('--checkpoint_dir', type=str, default='src/LoRA/checkpoints_lidarcat',
                         help='directory where checkpoints are saved')
     parser.add_argument('--log_dir', type=str, default='src/runs/lora',

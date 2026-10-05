@@ -573,7 +573,8 @@ def plot_pointcloud_with_labels_DALES(pc, labels, preds, miou=None, name='plot',
     plt.close(fig)
 
 
-def plot_pc_tensorboard(pc, labels, writer_tensorboard, tag, step, classes=5, lim_z=None, title='', model_name=None):
+def plot_pc_tensorboard(pc, labels, writer_tensorboard, tag, step, classes=5, lim_z=None, title='', model_name=None,
+                        save_dir='src/runs/figures/'):
     if lim_z is None:
         lim_z = [0, 1]
     plt.figure()
@@ -600,7 +601,7 @@ def plot_pc_tensorboard(pc, labels, writer_tensorboard, tag, step, classes=5, li
     plt.colorbar(sc, fraction=0.02, pad=0.1)
     plt.title(title)
     fig = plt.gcf()
-    directory = '/home/m.caros/work/3DSemanticSegmentation/src/runs/figures/'
+    directory = os.path.join(save_dir, '')
     if model_name:
         directory = directory + model_name + '/'
     if not os.path.exists(directory):
@@ -629,7 +630,8 @@ def plot_2d_sequence_tensorboard(pc, writer_tensorboard, filename, i_w):
     writer_tensorboard.add_figure(tag, plt.gcf(), i_w)
 
 
-def plot_3d_sequence_tensorboard(pc, writer_tensorboard, filename, i_w, title, n_clusters=None):
+def plot_3d_sequence_tensorboard(pc, writer_tensorboard, filename, i_w, title, n_clusters=None,
+                                 save_dir='figures_notebooks/kmeans_seq/'):
     ax = plt.axes(projection='3d', xlim=(0, 1), ylim=(0, 1))
 
     segment_labels = pc[:, 3]
@@ -678,7 +680,8 @@ def plot_3d_sequence_tensorboard(pc, writer_tensorboard, filename, i_w, title, n
 
     ax.legend(handles=legend_elements, loc='center right', bbox_to_anchor=(1.45, 0.5))  # , bbox_to_anchor=(1.04, 0.5)
 
-    directory = '/home/m.caros/work/3DSemanticSegmentation/figures_notebooks/kmeans_seq/'
+    directory = os.path.join(save_dir, '')
+    os.makedirs(directory, exist_ok=True)
     name = filename + '_' + str(i_w) + '.png'
     plt.savefig(directory + name, bbox_inches='tight', dpi=100)
 
@@ -686,7 +689,8 @@ def plot_3d_sequence_tensorboard(pc, writer_tensorboard, filename, i_w, title, n
     plt.close()
 
 
-def plot_3d_dales_tensorboard(pc, writer_tensorboard, filename, i_w, title, n_clusters=None):
+def plot_3d_dales_tensorboard(pc, writer_tensorboard, filename, i_w, title, n_clusters=None,
+                              save_dir='figures_notebooks/kmeans_seq/'):
     ax = plt.axes(projection='3d')
 
     # convert array of booleans to array of integers
@@ -696,7 +700,8 @@ def plot_3d_dales_tensorboard(pc, writer_tensorboard, filename, i_w, title, n_cl
     tag = str(n_clusters) + 'c-means_3Dxy' + filename.split('/')[-1]
     plt.title(title)
 
-    directory = '/home/m.caros/work/3DSemanticSegmentation/figures_notebooks/kmeans_seq/'
+    directory = os.path.join(save_dir, '')
+    os.makedirs(directory, exist_ok=True)
     name = filename + '_' + str(i_w) + '.png'
     plt.savefig(directory + name, bbox_inches='tight', dpi=100)
 

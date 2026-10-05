@@ -51,11 +51,10 @@ def store_las(array, output_dir, f_name='predictions.las'):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output_dir', type=str,
-                        default='/mnt/QPcotLIDev01/LiDAR/DL_preproc/LAS_filtered_ground/train',
+    parser.add_argument('--output_dir', type=str, required=True,
                         help='output directory')
-    parser.add_argument('--input_dir', type=str,
-                        default='/mnt/QPcotLIDev01/LiDAR/DL_preproc/100x100_s50_p8k/train')
+    parser.add_argument('--input_dir', type=str, required=True,
+                        help='directory with the .pt windows to convert')
     args = parser.parse_args()
 
     # list of tiles

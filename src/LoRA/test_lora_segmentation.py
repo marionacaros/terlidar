@@ -260,7 +260,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_dir', type=str, default=None,
                         help='output directory; default: src/LoRA/metrics/results_RIB (RIB) or src/LoRA/metrics/results_B29_trainedRIB (B29)')
     parser.add_argument('--data_root', type=str, default=None,
-                        help='directory with the preprocessed .pt files; overrides the directories stored in the file lists')
+                        help='directory with the preprocessed .pt files; the entries of the file lists are relative to it')
     parser.add_argument('--tiles', type=str, nargs='+', default=None,
                         help='tiles (blocks) to evaluate; default: the test tiles of the selected dataset')
     parser.add_argument('--seed', type=int, default=0, help='seed for the Python, NumPy and PyTorch random generators')
