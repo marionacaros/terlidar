@@ -206,7 +206,7 @@ if __name__ == '__main__':
                         # default='src/LoRA/checkpoints_lidarcat/seg_03-11-11:13_FT3B.pt',
                         # default='src/LoRA/checkpoints_lidarcat/seg_03-21-19:48lr01_FT23.pt',
                         # default='src/LoRA/checkpoints_lidarcat/seg_04-18-11:03_glZ.pt',
-                        default='src/LoRA/checkpoints_lidarcat/seg_04-29-18:01lr0001RIB.pt',
+                        default='checkpoints/seg_04-29_18-01lr0001RIB.pt',
                         help='models checkpoint path')
     parser.add_argument('--num_classes', type=int, default=3, help='number of classes')
     parser.add_argument('--in_path', type=str,
