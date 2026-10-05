@@ -96,7 +96,6 @@ The classes are described as follows:
   </em>
 </p>
 
-**Proposed Split**
 ## 📊 Proposed Data Split
 
 To ensure reproducible results and a fair evaluation of the model, we propose the following split between training and testing data:
@@ -146,7 +145,7 @@ Every script has `--help`. Options shared by the scripts:
 
 | Option | Scripts | Meaning |
 | :--- | :--- | :--- |
-| `--data_root` | ICGC train / test | Folder with the `.pt` windows. The lists in `train_test_files/` hold the absolute paths of the original servers; with `--data_root` only the file names are used. |
+| `--data_root` | ICGC train / test | Folder with the `.pt` windows. The entries of the lists in `train_test_files/` are relative to this folder (`<file>.pt`, or `train/<file>.pt` etc. for B29). |
 | `--tiles` | ICGC test | Blocks to evaluate (default: the test blocks set in the script). |
 | `--seed` | all | Seed for Python, NumPy and PyTorch. Defaults are the seeds the scripts always used for the train/val split (5 for `train_lora_rib.py`, 4 for the other training scripts). |
 | `--checkpoint_dir`, `--log_dir` | train | Where checkpoints and TensorBoard logs are written (defaults `src/LoRA/checkpoints_lidarcat`, `src/runs/lora`). |
@@ -266,8 +265,8 @@ compare runs.
 
 **DALES.** The DALES experiments use `proc_split_LAS_DALES.py`, `train_dales_pointnet2.py`,
 `train_lora_dales_pointnet2.py` and `test_*dales_segmentation.py`. Their checkpoints are not
-shipped and their default paths point to the original machine, so `--in_paths` / `--in_path`
-and `--model_checkpoint` must always be given, e.g.
+shipped, so `--in_paths` / `--in_path` (required) and `--model_checkpoint` must always be
+given, e.g.
 
 ```bash
 python proc_split_LAS_DALES.py --LAS_files_path /path/to/dales_las --out_path /path/to/dales_25x25
@@ -278,6 +277,30 @@ python src/LoRA/test_lora_dales_segmentation.py --in_path /path/to/dales_25x25/t
 ```
 
 TensorBoard: `tensorboard --logdir src/runs/lora`
+
+## 🖼️ Qualitative results
+
+Predictions of the LoRA-adapted PointNet++ (rank 32, alpha 16) on 80 m windows of the held-out
+TerLiDAR test blocks `pt438656` and `pt438652`. Classes: surrounding (green), transmission
+tower (purple) and power lines (blue).
+
+**Ground truth (left) vs. LoRA prediction (right)**
+
+<p align="center">
+  <img src="figs/predictions/tower_RIB_pt438652_w1698_113pZ.png" alt="LoRA prediction: tower and power lines, block pt438652" width="100%">
+  <img src="figs/predictions/lines_RIB_pt438652_w1448_6pHAG.png" alt="LoRA prediction: power lines, block pt438652" width="100%">
+  <img src="figs/predictions/lines_RIB_pt438656_w681_1pHAG.png" alt="LoRA prediction: power lines over buildings, block pt438656" width="100%">
+</p>
+
+**Input point cloud coloured by height (left) vs. LoRA prediction (right)**
+
+<p align="center">
+  <img src="figs/predictions/z_color_tower_RIB_pt438656_w640_444p.png" alt="LoRA prediction: tower and power lines above forest, block pt438656" width="100%">
+  <img src="figs/predictions/z_color_tower_RIB_pt438656_w1845_244p.png" alt="LoRA prediction: two towers next to dense vegetation, block pt438656" width="100%">
+  <img src="figs/predictions/z_color_tower_RIB_pt438656_w764_188p.png" alt="LoRA prediction: tower and power lines between buildings, block pt438656" width="100%">
+  <img src="figs/predictions/z_color_tower_RIB_pt438656_w573_131p.png" alt="LoRA prediction: tower in an urban scene, block pt438656" width="100%">
+  <img src="figs/predictions/z_color_tower_RIB_pt438656_w1769_96p.png" alt="LoRA prediction: tower surrounded by forest, block pt438656" width="100%">
+</p>
 
 ## 📚 Citation
 
