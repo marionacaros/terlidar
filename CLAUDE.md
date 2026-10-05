@@ -54,7 +54,7 @@ tensorboard --logdir src/runs/lora
 
 1. **Preprocessing** (repo root): `proc_no_ground.py` (TerLiDAR/ICGC LAS tiles) and `proc_split_LAS_DALES.py` (DALES) cut LAS tiles into square windows (80x80 m, default 8000 points) and store each window as a `.pt` tensor. Ground is removed when a window exceeds `n_points`; HAG and NDVI are added. Stored columns: `x, y, z, class, I, R, G, B, NIR, NDVI, HAG, point_id`.
 2. **File naming carries meaning**: windows are prefixed by their dominant target class (`tower_`, `lines_`, `windturbine_`, `othertower_`, `crane_`, otherwise `pc_`). Training scripts oversample by filename prefix (`startswith('tower')` / `startswith('line')` lists appended to the train list multiple times).
-3. **Datasets** ([src/datasets.py](src/datasets.py)): `CAT3Dataset` (train) and `CAT3SamplingDataset` (test, returns point ids so window predictions can be merged back per tile) for ICGC-style data; `DalesDataset` / `DalesSamplingDataset` for DALES. The other classes in the file (`CAT3DatasetViews`, `BarlowTwins*`) are leftovers from the parent project and unused here. Datasets normalize x,y to [-1,1] and z to [0,1] per window, and remap raw LAS classes to training labels in `get_labels_segmen` / `get_labels` / `get_all_labels`.
+3. **Datasets** ([src/datasets.py](src/datasets.py)): `CAT3Dataset` (train) and `CAT3SamplingDataset` (test, returns point ids so window predictions can be merged back per tile) for ICGC-style data; `DalesDataset` / `DalesSamplingDataset` for DALES. Datasets normalize x,y to [-1,1] and z to [0,1] per window, and remap raw LAS classes to training labels in `get_labels_segmen` / `get_labels` / `get_all_labels`.
 
 ### Label spaces and feature counts
 
@@ -83,7 +83,7 @@ Checkpoints are dicts with keys `model`, `optimizer`, `batch_size`, `lr`, `numbe
 
 ### Utilities
 
-`utils/utils.py` (augmentation, sampling, kNN, LAS export, preprocessing helpers), `utils/get_metrics.py` (IoU, accuracy, class-weighting schemes), `utils/utils_plot.py`, `utils/frompt2las.py` (convert `.pt` windows back to LAS). `show_confusionmatrix_acc.ipynb` renders confusion matrices from evaluation output. `doc/point counts/` has per-class point counts for B29 and RIB.
+`utils/utils.py` (file lists, seeding, preprocessing, z-rotation, point sampling), `utils/get_metrics.py` (IoU, accuracy, class-weighting schemes), `utils/utils_loss.py` (`CELoss`, used by the baseline training), `utils/utils_plot.py` (prediction plots, confusion matrix). Code that no script, test or the notebook uses was removed; scripts rely on `from ... import *`, so check with a run of `pytest tests` before deleting or renaming helpers. `show_confusionmatrix_acc.ipynb` renders confusion matrices from evaluation output. `doc/point counts/` has per-class point counts for B29 and RIB.
 
 ## Dataset facts worth knowing
 

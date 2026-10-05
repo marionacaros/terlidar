@@ -24,7 +24,6 @@ from src.LoRA.models.pointnet2_ss import *
 from src.config import *
 from utils.utils import *
 from utils.get_metrics import *
-from utils.utils_plot import plot_pc_tensorboard
 from src.LoRA.models.utils import *
 from utils.utils_loss import *
 from utils.utils_plot import *
@@ -198,8 +197,6 @@ def train(
 
     # loss
     loss = CELoss(weight=c_weights, reduction='mean')
-    # loss = FocalLoss(gamma=2, weight=c_weights)
-    # loss= DiceLoss()
 
     if model_checkpoint:
         print('Loading checkpoint')

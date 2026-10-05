@@ -50,18 +50,15 @@ def main():
     parser.add_argument('--stride', default=10)
     parser.add_argument('--max_height', type=float, default=200.0)
     parser.add_argument('--max_intensity', type=float, default=5000.0)
-    parser.add_argument('--hag_path', type=str, default=None,
-                        help="directory with the LAS files that carry HeightAboveGround; only read when DATASET_NAME is 'EMP'")
 
     args = parser.parse_args()
     start_time = time.time()
 
-    global OUT_PATH, W_SIZE, MAX_Z, MAX_I, STORE_DOUBLE, DATASET_NAME, MAX_N_PTS, NUM_CPUS, N_POINTS, MAX_H, STRIDE, HAG_PATH
+    global OUT_PATH, W_SIZE, MAX_Z, MAX_I, STORE_DOUBLE, DATASET_NAME, MAX_N_PTS, NUM_CPUS, N_POINTS, MAX_H, STRIDE
     NUM_CPUS = 16
 
     STORE_DOUBLE = True
     OUT_PATH = args.out_path
-    HAG_PATH = args.hag_path
     DATASET_NAME = 'Z31' #OUT_PATH.split('/')[-1].split('_')[0]
     N_POINTS = args.n_points
     W_SIZE = args.w_size
@@ -154,29 +151,6 @@ def split_pointcloud(f):
                                 np.arange(len(data_f.x)) # 11  ID
                                 ))
             except AttributeError as e:
-                print(e)
-                print(f)
-                return
-        else:
-            # Alt Emporda data
-            try:
-                pc = np.vstack((data_f.x,
-                                data_f.y,
-                                data_f.z,
-                                data_f.classification,  # 3
-                                data_f.intensity / MAX_I,  # 4
-                                data_f.red / 65536.0,  # 5
-                                data_f.green / 65536.0,  # 6
-                                data_f.blue / 65536.0,  # 7
-                                data_f.nir / 65536.0,  # 8
-                                ))
-                data_f = laspy.read(os.path.join(HAG_PATH, f_name + '.las'))
-                pc2 = np.vstack((np.zeros(len(data_f.x)),  # 9  NDVI
-                                 data_f.HeightAboveGround / MAX_H,  # 10  HAG
-                                np.arange(len(data_f.x)) # 11  ID
-                                 ))
-                pc = np.concatenate((pc, pc2), axis=0)
-            except Exception as e:
                 print(e)
                 print(f)
                 return

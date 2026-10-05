@@ -171,7 +171,7 @@ terlidar/
 │       ├── models/                   PointNet2 (pointnet2_ss.py), LoraPointNet2 (lora_pointnet2_params.py)
 │       ├── train_*.py                training scripts
 │       └── test_*.py                 evaluation scripts (not unit tests)
-├── utils/                            augmentation, sampling, metrics, plots, LAS export
+├── utils/                            augmentation, sampling, metrics, loss, plots
 ├── tests/                            pytest smoke tests
 └── show_confusionmatrix_acc.ipynb
 ```

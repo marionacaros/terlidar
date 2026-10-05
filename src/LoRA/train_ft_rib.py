@@ -24,7 +24,6 @@ from src.LoRA.models.pointnet2_ss import *
 from src.config import *
 from utils.utils import *
 from utils.get_metrics import *
-from utils.utils_plot import plot_pc_tensorboard
 from src.LoRA.models.utils import *
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',

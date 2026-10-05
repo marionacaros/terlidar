@@ -99,22 +99,3 @@ class PointNet2(nn.Module):
         
         # l4 -> transf feature # changed l4_points for None
         return x, None
-
-
-class get_loss(nn.Module):
-    """Weighted negative log-likelihood on the log-probabilities returned by the model."""
-
-    def __init__(self) -> None:
-        super(get_loss, self).__init__()
-
-    def forward(self, pred: torch.Tensor, target: torch.Tensor, trans_feat: Optional[torch.Tensor],
-                weight: Optional[torch.Tensor]) -> torch.Tensor:
-        """
-        :param pred: log-probabilities [points, num_classes]
-        :param target: class indices [points]
-        :param trans_feat: unused
-        :param weight: per-class weights [num_classes] or None
-        """
-        total_loss = F.nll_loss(pred, target, weight=weight)
-
-        return total_loss

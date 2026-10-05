@@ -57,37 +57,5 @@ def save_checkpoint_without_classifier_layer(name: str, model: nn.Module, optimi
     torch.save(state, filename)
 
     
-def plot_pc(sample_pc: torch.Tensor, i: int = 0) -> None:
-    """Show a 3D scatter plot of cloud ``i`` of a batch [B, N, >=3], coloured by z."""
-    # Convert to numpy array
-    sample_pc_np = sample_pc.numpy()
-
-    # Plot the 3D point cloud
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(sample_pc_np[i, :, 0], sample_pc_np[i, :, 1], sample_pc_np[i, :, 2], c=sample_pc_np[i, :, 2], s=30, marker='o', cmap="viridis", alpha=0.7)
-    ax.set_zlim3d(-1, 1)
-
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    plt.show()
 
     
-class DotDict(dict):
-    """Dictionary with dot notation access"""
-    def __getattr__(self, name):
-        try:
-            return self[name]
-        except KeyError:
-            raise AttributeError(f"'DotDict' object has no attribute '{name}'")
-
-    def __setattr__(self, name, value):
-        self[name] = value
-
-    def __delattr__(self, name):
-        try:
-            del self[name]
-        except KeyError:
-            raise AttributeError(f"'DotDict' object has no attribute '{name}'")
-
