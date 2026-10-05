@@ -34,7 +34,8 @@ def train(
         model_checkpoint,
         num_feat=5,
         num_classes=5,
-        device='cuda'):
+        device='cuda',
+        data_root=None):
     
     start_time = time.time()
 
@@ -53,10 +54,8 @@ def train(
     writer_val = SummaryWriter(location + NAME + '_val')
     logging.info(f"Tensorboard runs: {writer_train.get_logdir()}")
 
-    with open(os.path.join(path_files, 'train_files.txt'), 'r') as f: # data augm obj x2
-        train_files = f.read().splitlines()
-    with open(os.path.join(path_files, 'val_files.txt'), 'r') as f:
-        val_files = f.read().splitlines()
+    train_files = read_file_list(os.path.join(path_files, 'train_files.txt'), data_root)
+    val_files = read_file_list(os.path.join(path_files, 'val_files.txt'), data_root)
 
     if len(val_files) == 0:
         val_files=[]
@@ -359,6 +358,8 @@ if __name__ == '__main__':
                         type=str, help='models checkpoint path')
 
 
+    parser.add_argument('--data_root', type=str, default=None,
+                        help='directory with the preprocessed .pt files; overrides the directories stored in the file lists')
     parser.add_argument('--seed', type=int, default=4, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
     set_seed(args.seed)
@@ -373,4 +374,5 @@ if __name__ == '__main__':
         args.model_checkpoint,
         num_feat=8,
         num_classes=args.num_classes,
-        device=args.device)
+        device=args.device,
+        data_root=args.data_root)

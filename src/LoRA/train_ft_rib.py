@@ -31,7 +31,8 @@ def train(
         number_of_workers,
         model_checkpoint,
         num_feat=8,
-        num_classes=5):
+        num_classes=5,
+        data_root=None):
     
     start_time = time.time()
 
@@ -59,8 +60,7 @@ def train(
 
     val_files=[]
 
-    with open(os.path.join(path_list_files, 'train_files.txt'), 'r') as f:
-        train_files = f.read().splitlines()
+    train_files = read_file_list(os.path.join(path_list_files, 'train_files.txt'), data_root)
 
     train_files.sort()
     random.shuffle(train_files)
@@ -363,6 +363,8 @@ if __name__ == '__main__':
                         type=str, help='models checkpoint path')
 
 
+    parser.add_argument('--data_root', type=str, default=None,
+                        help='directory with the preprocessed .pt files; overrides the directories stored in the file lists')
     parser.add_argument('--seed', type=int, default=4, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
     set_seed(args.seed)
@@ -376,4 +378,5 @@ if __name__ == '__main__':
         args.num_workers,
         args.model_checkpoint,
         num_feat=8,
-        num_classes=args.num_classes)
+        num_classes=args.num_classes,
+        data_root=args.data_root)

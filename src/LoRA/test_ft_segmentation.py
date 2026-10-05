@@ -215,6 +215,10 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=str, default='cuda', help='device to be used, cuda or cpu')
     parser.add_argument('--plot_preds', type=bool, default=False, help='plot predictions')
 
+    parser.add_argument('--data_root', type=str, default=None,
+                        help='directory with the preprocessed .pt files; overrides the directories stored in the file lists')
+    parser.add_argument('--tiles', type=str, nargs='+', default=None,
+                        help='tiles (blocks) to evaluate; default: pt438656 pt438652 pt438658 pt440652')
     parser.add_argument('--seed', type=int, default=0, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
     set_seed(args.seed)
@@ -244,8 +248,7 @@ if __name__ == '__main__':
         os.makedirs(args.output_dir)
 
     # Uncomment for B29 dataset & RIB
-    with open(os.path.join(args.in_path, 'test_files.txt'), 'r') as f:
-            test_files = f.read().splitlines()
+    test_files = read_file_list(os.path.join(args.in_path, 'test_files.txt'), args.data_root)
     path = os.path.dirname(test_files[0]) 
     print(f'path: {path}')
     # list of tiles
@@ -265,7 +268,7 @@ if __name__ == '__main__':
 
     # SELEC TILES
     if DATASET == 'RIB':
-        tiles=["pt438656", "pt438652","pt438658","pt440652"]  # RIB 
+        tiles = args.tiles or ["pt438656", "pt438652","pt438658","pt440652"]  # RIB 
  
     # Initialize empty arrays here if IoU needs to be computed for the whole dataset. Result is more rigorous
     # preds_arr = np.empty(0, dtype=int)

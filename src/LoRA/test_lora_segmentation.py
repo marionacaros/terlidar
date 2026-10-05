@@ -213,10 +213,19 @@ if __name__ == '__main__':
     parser.add_argument('--num_classes', type=int, default=3, help='number of classes')
     parser.add_argument('--num_features', type=int, default=8, help='number of features to use')
     parser.add_argument('--device', type=str, default='cuda', help='device to be used, cuda or cpu')
-    parser.add_argument('--dataset', type=str, default='RIB', help='dataset for inference. Options: RIB, B29 or COSTA')
+    parser.add_argument('--dataset', type=str, default='RIB', choices=['RIB', 'B29'],
+                        help='dataset for inference: RIB (TerLiDAR) or B29')
     parser.add_argument('--lora_alpha', type=int, default=16, help='LoRa alpha')
     parser.add_argument('--plot_preds', type=bool, default=False, help='plot predictions')
 
+    parser.add_argument('--in_path', type=str, default=None,
+                        help='folder with the test file list; default: train_test_files/RIB_smallLoRA_80x80 (RIB) or train_test_files/B29_80x80 (B29)')
+    parser.add_argument('--output_dir', type=str, default=None,
+                        help='output directory; default: src/LoRA/metrics/results_RIB (RIB) or src/LoRA/metrics/results_B29_trainedRIB (B29)')
+    parser.add_argument('--data_root', type=str, default=None,
+                        help='directory with the preprocessed .pt files; overrides the directories stored in the file lists')
+    parser.add_argument('--tiles', type=str, nargs='+', default=None,
+                        help='tiles (blocks) to evaluate; default: the test tiles of the selected dataset')
     parser.add_argument('--seed', type=int, default=0, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
     set_seed(args.seed)
@@ -238,25 +247,23 @@ if __name__ == '__main__':
     logging.info(f'NUM CLASSES: {n_classes}')
 
     if DATASET == 'RIB':
-        args.in_path = 'train_test_files/RIB_smallLoRA_80x80'
-        args.output_dir = 'src/LoRA/metrics/results_RIB'
+        args.in_path = args.in_path or 'train_test_files/RIB_smallLoRA_80x80'
+        args.output_dir = args.output_dir or 'src/LoRA/metrics/results_RIB'
 
-        with open(os.path.join(args.in_path, 'test_files.txt'), 'r') as f:
-            test_files = f.read().splitlines()
+        test_files = read_file_list(os.path.join(args.in_path, 'test_files.txt'), args.data_root)
         # tiles = list(set([path_f.split('_')[-2].split('.')[0] for path_f in test_files]))
         path = os.path.dirname(test_files[0]) 
         # test tiles
-        tiles=["pt438656", "pt438652","pt438658","pt440652"] 
+        tiles = args.tiles or ["pt438656", "pt438652","pt438658","pt440652"]
 
     elif DATASET == 'B29':
-        args.in_path = 'train_test_files/B29_80x80'
-        args.output_dir = 'src/LoRA/metrics/results_B29_trainedRIB'
+        args.in_path = args.in_path or 'train_test_files/B29_80x80'
+        args.output_dir = args.output_dir or 'src/LoRA/metrics/results_B29_trainedRIB'
 
-        with open(os.path.join(args.in_path, 'test_files_filtered.txt'), 'r') as f:
-            test_files = f.read().splitlines()
+        test_files = read_file_list(os.path.join(args.in_path, 'test_files_filtered.txt'), args.data_root)
         path = os.path.dirname(test_files[0]) 
         # test tiles
-        tiles=['279553', '279554', '282553', '282555', '282557', '283553','283555', '300546']
+        tiles = args.tiles or ['279553', '279554', '282553', '282555', '282557', '283553','283555', '300546']
 
     # load model
     model = load_model(args.model_checkpoint, n_classes, n_feat, args.max_rank, lora_alpha=args.lora_alpha)

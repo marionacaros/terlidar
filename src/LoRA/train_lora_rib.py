@@ -36,7 +36,8 @@ def train(
         lora_fix_rank=False,
         lora_min_rank=16,
         lora_max_rank=64,
-        lora_alpha=1):
+        lora_alpha=1,
+        data_root=None):
     
     start_time = time()
 
@@ -57,8 +58,7 @@ def train(
     writer_val = SummaryWriter(location + NAME + '_val')
     logging.info(f"Tensorboard runs: {writer_train.get_logdir()}")
 
-    with open(os.path.join(path_list_files, 'train_files.txt'), 'r') as f:
-        train_files = f.read().splitlines()
+    train_files = read_file_list(os.path.join(path_list_files, 'train_files.txt'), data_root)
     # train_files = list(set(train_files))
 
     val_files=[]
@@ -405,6 +405,8 @@ if __name__ == '__main__':
     
 
 
+    parser.add_argument('--data_root', type=str, default=None,
+                        help='directory with the preprocessed .pt files; overrides the directories stored in the file lists')
     parser.add_argument('--seed', type=int, default=5, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
     set_seed(args.seed)
@@ -421,4 +423,5 @@ if __name__ == '__main__':
         n_classes=args.num_classes, 
         lora_max_rank=args.max_rank,
         lora_min_rank=args.min_rank,
-        lora_alpha=args.lora_alpha)
+        lora_alpha=args.lora_alpha,
+        data_root=args.data_root)
