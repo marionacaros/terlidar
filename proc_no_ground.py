@@ -1,3 +1,20 @@
+"""Preprocess ICGC LAS tiles (TerLiDAR / RIB, B29) into fixed-size windows for training.
+
+Each tile in --in_path is cut into square windows of --w_size metres that overlap by --stride
+metres, and every window with enough points is saved to --out_path as a .pt tensor with columns
+x, y, z, class, I, R, G, B, NIR, NDVI, HAG, point_id.
+
+The LAS files need a ``Distance`` extra dimension (height above ground; it is divided by 1000
+to obtain metres), and the red, green, blue and nir channels.
+
+Output files are named <prefix>_<DATASET_NAME>_<tile>_w<window index>.pt, where the prefix is the
+target class found in the window (crane, windturbine, tower, lines, othertower) or ``pc``. The
+training scripts oversample windows by this prefix. DATASET_NAME is set in main(); for 'B29',
+LAS class 18 (other towers) is relabelled as 29 (wind turbine).
+
+Run from the repository root:
+    python proc_no_ground.py --in_path <dir with .las tiles> --out_path <output dir>
+"""
 import argparse
 from tqdm import tqdm
 import sys
@@ -79,6 +96,7 @@ def main():
 
 
 def parallel_proc(files_list, num_cpus):
+    """Run split_pointcloud on every file with a pool of num_cpus processes."""
     p = multiprocessing.Pool(processes=num_cpus)
     # Use tqdm with imap_unordered
     with tqdm(total=len(files_list)) as pbar:
@@ -89,6 +107,7 @@ def parallel_proc(files_list, num_cpus):
 
 
 def get_ndvi(nir, red):
+    """NDVI = (nir - red) / (nir + red), with 0 where nir + red == 0."""
     a = (nir - red)
     b = (nir + red)
     c = np.divide(a, b, out=np.zeros_like(a, dtype=float), where=b != 0)
@@ -100,6 +119,12 @@ def split_pointcloud(f):
     1 - Remove ground (categories 2, 8, 13)
     2 - Split point cloud into windows of size W_SIZE.
     3 - Add HAG and NDVI
+
+    Reads the settings from the module globals set in main(). Points of classes
+    7, 11, 13, 24, 30, 31, 99, 102-106 and 135 and points with negative height above ground are
+    dropped, and ground key points (8) are merged into ground (2). A window is stored only if it
+    has at least N_POINTS points, more than 1000 of them not ground, and still at least N_POINTS
+    after preprocessing() (utils/utils.py), which removes the ground when enough points remain.
 
     :param f: file path
     """
