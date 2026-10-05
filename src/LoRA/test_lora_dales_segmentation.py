@@ -212,7 +212,9 @@ if __name__ == '__main__':
     parser.add_argument('--max_rank', type=int, default=32, help='Lora maximum rank')
     parser.add_argument('--fix_rank', type=bool, default=True, help='Lora fixed rank')
 
+    parser.add_argument('--seed', type=int, default=0, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
+    set_seed(args.seed)
     logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                         level=logging.DEBUG,
                         datefmt='%Y-%m-%d %H:%M:%S')

@@ -203,7 +203,9 @@ if __name__ == '__main__':
     parser.add_argument('--num_classes', type=int, default=4, help='number of classes')
     parser.add_argument('--num_feat', type=int, default=5, help='number of classes')
 
+    parser.add_argument('--seed', type=int, default=0, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
+    set_seed(args.seed)
     logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                         level=logging.DEBUG,
                         datefmt='%Y-%m-%d %H:%M:%S')
