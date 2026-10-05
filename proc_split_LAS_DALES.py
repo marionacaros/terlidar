@@ -77,9 +77,10 @@ def split_dataset_windows(file):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--out_path', type=str, default='/home/m.caros/work/DALES/dales_25x25',
+    parser.add_argument('--out_path', type=str, required=True,
                         help='output folder where processed files are stored')
-    parser.add_argument('--LAS_files_path', type=str, default='/home/m.caros/work/DALES/dales_las')
+    parser.add_argument('--LAS_files_path', type=str, required=True,
+                        help='folder with the train/ and test/ sub-folders of DALES LAS tiles')
     parser.add_argument('--w_size', default=[25, 25])
     start_time = time.time()
 

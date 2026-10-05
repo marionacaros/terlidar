@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Research code accompanying the paper *Efficient Task and Domain Adaptation in ALS Semantic Segmentation via LoRA for PointNet++*, plus the documentation for the TerLiDAR dataset (airborne LiDAR along the Ter River, Catalonia). The code is a published snapshot extracted from a larger private project (`3DSemanticSegmentation`); it is not a packaged library and has no build step, linter config, or test suite.
+Research code accompanying the paper *Efficient Task and Domain Adaptation in ALS Semantic Segmentation via LoRA for PointNet++*, plus the documentation for the TerLiDAR dataset (airborne LiDAR along the Ter River, Catalonia). The code is a published snapshot extracted from a larger private project (`3DSemanticSegmentation`); it is not a packaged library and has no build step or linter config. `tests/` holds CPU-only pytest smoke tests (`pytest tests`).
 
-Note that the `test_*.py` files under `src/LoRA/` are **evaluation/inference scripts**, not unit tests.
+Note that the `test_*.py` files under `src/LoRA/` are **evaluation/inference scripts**, not unit tests; the unit tests are in `tests/`.
 
 ## Environment
 
@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 ## Running scripts
 
-All scripts must be run **from the repository root**: they import `src.*` and `utils.*` as top-level packages and write to relative paths (`src/runs/lora/`, `src/LoRA/logs/`, `src/LoRA/checkpoints_lidarcat/`, `src/LoRA/metrics/`).
+All scripts should be run **from the repository root**: they write to relative paths (`src/runs/lora/`, `src/LoRA/logs/`, `src/LoRA/checkpoints_lidarcat/`, `src/LoRA/metrics/`).
 
 ```bash
 # Baseline PointNet++ (source domain: B29 / DALES)
@@ -40,16 +40,13 @@ python src/LoRA/test_segmentation.py / test_ft_segmentation.py / test_*dales_seg
 tensorboard --logdir src/runs/lora
 ```
 
-### Things that will break out of the box
+### Things to know before running
 
-The snapshot still carries assumptions from the original machine. Check these before running anything:
-
-- **Hardcoded `sys.path.append('/home/m.caros/work/3DSemanticSegmentation')`** at the top of every script. Imports resolve only because of running from the repo root (or with `PYTHONPATH=.`).
-- **Checkpoint location and names differ from the argparse defaults.** Defaults point at `src/LoRA/checkpoints_lidarcat/<name with ':' in timestamp>.pt`; the shipped weights live in `checkpoints/` with `_` instead of `:` (e.g. `checkpoints/seg_02-24_15-52B29_NOclassifier.pt`). Always pass `--model_checkpoint` explicitly.
-- **Output directories are not created**: `src/LoRA/logs/` and `src/LoRA/checkpoints_lidarcat/` must exist before training.
-- **Missing modules**: `proc_no_ground.py` imports `proc_adjacent_tiles`, and `src/LoRA/test_segmentation.py` imports `src.LoRA.models.pointnet2_msg`; neither file is in the repo.
-- **`train_test_files/*/*.txt` contain absolute paths** to preprocessed `.pt` windows on the original servers (`/dades/LIDAR/...`, `/mnt/QPcotLIDev01/...`). They document the split but must be rewritten to local paths to be usable. `RIB_smallLoRA_80x80/val_files.txt` is empty on purpose: the RIB training scripts carve an 80/20 train/val split out of `train_files.txt` with `random.seed(5)`.
-- Several defaults (`--in_paths`, `--out_path`, `DATASET_NAME = 'Z31'` in `proc_no_ground.py`) are machine- or experiment-specific.
+- **No machine-specific paths are left in the code.** Data locations are always arguments: `--data_root` for the ICGC scripts, `--in_paths` / `--in_path` (required) for DALES, `--LAS_files_path` / `--out_path` for preprocessing.
+- **`train_test_files/*/*.txt` hold paths relative to `--data_root`**: bare file names for RIB, `train/`, `val/`, `test/` sub-folders for B29 (`read_file_list` in `utils/utils.py` resolves them). `RIB_smallLoRA_80x80/val_files.txt` is empty on purpose: the RIB training scripts carve an 80/20 train/val split out of `train_files.txt` (seed 5 for LoRA, 4 for full fine-tuning).
+- **Shipped weights live in `checkpoints/`** and are the argparse defaults of the RIB scripts. The DALES checkpoints are not shipped, so `--model_checkpoint` must be passed there.
+- **Hyperparameters of the published runs differ from the script defaults**; the README reproduction commands pass them explicitly. See `TODO.md` for this and other known issues that were left alone because fixing them would change behaviour.
+- `DATASET_NAME = 'Z31'` in `proc_no_ground.py` is still a constant in `main()` and must be edited by hand.
 
 ## Architecture
 

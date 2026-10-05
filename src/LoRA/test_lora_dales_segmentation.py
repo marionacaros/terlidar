@@ -242,7 +242,8 @@ if __name__ == '__main__':
                         # default='src/LoRA/checkpoints_lidarcat/seg_02-12-15:23_lora_32R_32.pt', # trained 2 blocks
                         default='src/LoRA/checkpoints_lidarcat/seg_02-13-10:31_lora_32R_32T4.pt', # trained 4 blocks
                         help='models checkpoint path')
-    parser.add_argument('--in_path', type=str, default='/dades/LIDAR/towers_detection/datasets/DALES/dales_25x25/test')
+    parser.add_argument('--in_path', type=str, required=True,
+                        help='directory with the DALES test .pt windows')
     parser.add_argument('--device', type=str, default='cuda', help='device to be used, cuda or cpu')
     parser.add_argument('--num_classes', type=int, default=6, help='number of classes')
     parser.add_argument('--num_feat', type=int, default=5, help='number of classes')

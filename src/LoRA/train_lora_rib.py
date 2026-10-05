@@ -67,7 +67,7 @@ def train(
     :param lora_min_rank: lower bound of the per-layer rank
     :param lora_max_rank: upper bound of the per-layer rank; equal bounds give a fixed rank
     :param lora_alpha: LoRA scaling factor
-    :param data_root: directory with the .pt windows, overriding the directories in the list
+    :param data_root: directory with the .pt windows, that the entries of the file lists are relative to
     :param params_log_dir: directory where the table of model parameters is written
     :param n_points: points per window returned by the dataset (train_loop then uses 4096 of them)
     :param batch_size: batch size
@@ -454,7 +454,7 @@ if __name__ == '__main__':
 
 
     parser.add_argument('--data_root', type=str, default=None,
-                        help='directory with the preprocessed .pt files; overrides the directories stored in the file lists')
+                        help='directory with the preprocessed .pt files; the entries of the file lists are relative to it')
     parser.add_argument('--checkpoint_dir', type=str, default='src/LoRA/checkpoints_lidarcat',
                         help='directory where checkpoints are saved')
     parser.add_argument('--log_dir', type=str, default='src/runs/lora',

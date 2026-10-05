@@ -366,7 +366,8 @@ def train_loop(data, optimizer, ce_loss, pointnet, w_tensorboard=None, train=Tru
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--in_paths', type=str,default='/dades/LIDAR/towers_detection/datasets/DALES/dales_25x25/train')  
+    parser.add_argument('--in_paths', type=str, required=True,
+                        help='directory with the DALES training .pt windows')
     parser.add_argument('--num_points', type=int, default=8000, help='number of points per cloud')
     parser.add_argument('--batch_size', type=int, default=128, help='batch size')
     parser.add_argument('--epochs', type=int, default=200, help='number of epochs')

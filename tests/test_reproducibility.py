@@ -1,4 +1,5 @@
 """Seeding, file lists, the RIB train/val split and checkpoint files."""
+import glob
 import hashlib
 import math
 import os
@@ -44,6 +45,22 @@ def test_read_file_list_keeps_paths_without_data_root(tmp_path):
     list_file.write_text('/server/data/train/pc_RIB_a_w1.pt\n/server/data/train/tower_RIB_a_w2.pt\n')
     assert read_file_list(str(list_file)) == ['/server/data/train/pc_RIB_a_w1.pt',
                                               '/server/data/train/tower_RIB_a_w2.pt']
+
+
+def test_read_file_list_resolves_relative_entries(tmp_path):
+    # the shipped lists hold entries relative to data_root, with or without a split sub-folder
+    list_file = tmp_path / 'train_files.txt'
+    list_file.write_text('pc_RIB_a_w1.pt\ntrain/tower_B29_a_w2.pt\n')
+    data_root = tmp_path / 'local'
+    (data_root / 'train').mkdir(parents=True)
+    assert read_file_list(str(list_file), str(data_root)) == [str(data_root / 'pc_RIB_a_w1.pt'),
+                                                              str(data_root / 'train' / 'tower_B29_a_w2.pt')]
+
+
+def test_shipped_lists_have_no_absolute_paths():
+    for list_file in glob.glob(os.path.join(REPO_ROOT, 'train_test_files', '*', '*.txt')):
+        with open(list_file) as f:
+            assert not any(line.startswith('/') for line in f), list_file
 
 
 def test_read_file_list_remaps_to_data_root(tmp_path):

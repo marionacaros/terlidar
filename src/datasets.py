@@ -549,7 +549,7 @@ class CAT3DatasetViews(CAT3Dataset):
         
         # get random number between 0 and 300
         # rdm = np.random.randint(0, 300)
-        # o_path='/home/m.caros/work/3DSemanticSegmentation/figures/views2'
+        # o_path='figures/views2'
 
         for i in range(3):
             x = ((coords[i, :, 0]) * (image_size - 1)).astype(int)

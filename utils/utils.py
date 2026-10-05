@@ -16,10 +16,11 @@ def read_file_list(list_path: str, data_root: Optional[str] = None) -> List[str]
     """
     Read a text file with one point cloud path per line.
 
-    The lists in train_test_files/ store the absolute paths used on the machine where the paper
-    experiments were run. Pass data_root to load the same files from another location: each path
-    is replaced by <data_root>/<file name>, or by <data_root>/<parent folder>/<file name> when
-    that sub-folder (e.g. train, val, test) exists inside data_root.
+    The lists in train_test_files/ store paths relative to the folder with the preprocessed
+    windows (e.g. pc_RIB_pt436658_w709.pt or train/pc_B29_ETehpt_315545_w284.pt). Pass that
+    folder as data_root: each entry becomes <data_root>/<file name>, or
+    <data_root>/<parent folder>/<file name> when that sub-folder (e.g. train, val, test) exists
+    inside data_root. Without data_root the entries are returned unchanged.
 
     :param list_path: str, path to the .txt list
     :param data_root: str or None, directory containing the preprocessed .pt files
@@ -31,7 +32,8 @@ def read_file_list(list_path: str, data_root: Optional[str] = None) -> List[str]
     if data_root:
         remapped = []
         for path in files:
-            sub_dir = os.path.join(data_root, os.path.basename(os.path.dirname(path)))
+            parent = os.path.basename(os.path.dirname(path))
+            sub_dir = os.path.join(data_root, parent) if parent else data_root
             base_dir = sub_dir if os.path.isdir(sub_dir) else data_root
             remapped.append(os.path.join(base_dir, os.path.basename(path)))
         files = remapped
