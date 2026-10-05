@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import os
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import ListedColormap, LogNorm
 import numpy as np
 from matplotlib.lines import Line2D
 from sklearn.metrics import confusion_matrix
@@ -821,31 +821,77 @@ def plot_confusion_matrix(preds, targets, classes, normalize=False, title='Confu
     plt.xlabel('Predicted label')
 
 
-def show_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues, fontsize=14):
-
-    # using the matrix generated as means to plot a confusion matrix graphically
+def show_confusion_matrix(cm, classes, normalize=False, log_scale=False,
+                          title='Confusion matrix', cmap=plt.cm.Blues, fontsize=12, plot_bar=False, save_path=None,
+                          n_colors = 4 ):
+    """
+    Display a confusion matrix with options for normalization and logarithmic scaling.
+    
+    Parameters:
+    -----------
+    cm : array-like
+        Confusion matrix
+    classes : list
+        List of class names
+    normalize : bool, optional
+        Whether to normalize the confusion matrix (default: False)
+    log_scale : bool, optional
+        Whether to use logarithmic scale for colors (default: False)
+    title : str, optional
+        Title for the plot (default: 'Confusion matrix')
+    cmap : colormap, optional
+        Colormap for the plot (default: plt.cm.Blues)
+    fontsize : int, optional
+        Font size for labels (default: 12)
+    plot_bar : bool, optional
+        Whether to plot the colorbar (default: False)
+    save_path : str, optional
+        Path to save the figure. If None, figure is not saved (default: None)
+    """
+    # Normalize by row (true class)
     if normalize:
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        print("Normalized confusion matrix")
+        cm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
+        cm = np.nan_to_num(cm) * 100  # convert to %
+        fmt = '.1f'
+        value_label = "%"
     else:
-        print('Confusion matrix, without normalization')
+        fmt = '.0e'
+        value_label = "count"
 
-    # print(cm)
-    plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    plt.title(title, fontsize=fontsize+2)
-    plt.colorbar()
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation=45, fontsize=fontsize)
-    plt.yticks(tick_marks, classes,fontsize=fontsize )
+    # Choose normalization for color scaling 
+    norm = LogNorm(vmin=cm.min() + 1, vmax=cm.max()) if log_scale else None
 
-    fmt = '.2f' if normalize else 'd'
-    thresh = cm.max() / 2.
+    # Use discrete colormap with fewer colors
+     # Reduced number of colors in the colorbar
+    cmap_discrete = plt.get_cmap(cmap, n_colors)
+
+    # Plot
+    plt.figure(figsize=(4, 3))
+    plt.imshow(cm, interpolation='nearest', cmap=cmap_discrete, norm=norm)
+    plt.title(title, fontsize=fontsize + 2)
+    plt.xticks(np.arange(len(classes)), classes, rotation=45, ha='right', fontsize=fontsize)
+    plt.yticks(np.arange(len(classes)), classes, fontsize=fontsize)
+    if plot_bar: 
+        plt.colorbar()
+
+    # Annotate cells
+    thresh = np.nanmax(cm) / 2.0
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        plt.text(j, i, format(cm[i, j], fmt), 
-                 horizontalalignment="center",
-                 color="white" if cm[i, j] > thresh else "black",
-                 fontsize=fontsize)
+        val = cm[i, j]
+        text_color = 'black'
+        if normalize:
+            text_color = "white" if val > thresh else "black"
+        plt.text(j, i, format(val, fmt),
+                 ha="center", va="center", color=text_color, fontsize=fontsize)
 
     plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
+    plt.ylabel('True label', fontsize=fontsize)
+    plt.xlabel(f'Predicted label ({value_label})', fontsize=fontsize)
+    plt.grid(False)
+
+    if save_path:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        plt.savefig(save_path, bbox_inches='tight', dpi=300, transparent=True)
+        print(f"Saved to {save_path}")
+
+    plt.show()
