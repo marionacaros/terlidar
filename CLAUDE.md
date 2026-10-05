@@ -45,7 +45,7 @@ tensorboard --logdir src/runs/lora
 - **No machine-specific paths are left in the code.** Data locations are always arguments: `--data_root` for the ICGC scripts, `--in_paths` / `--in_path` (required) for DALES, `--LAS_files_path` / `--out_path` for preprocessing.
 - **`train_test_files/*/*.txt` hold paths relative to `--data_root`**: bare file names for RIB, `train/`, `val/`, `test/` sub-folders for B29 (`read_file_list` in `utils/utils.py` resolves them). `RIB_smallLoRA_80x80/val_files.txt` is empty on purpose: the RIB training scripts carve an 80/20 train/val split out of `train_files.txt` (seed 5 for LoRA, 4 for full fine-tuning).
 - **Shipped weights live in `checkpoints/`** and are the argparse defaults of the RIB scripts. The DALES checkpoints are not shipped, so `--model_checkpoint` must be passed there.
-- **Hyperparameters of the published runs differ from the script defaults**; the README reproduction commands pass them explicitly. See `TODO.md` for this and other known issues that were left alone because fixing them would change behaviour.
+- **Hyperparameters of the published runs differ from the script defaults**; the README reproduction commands pass them explicitly.
 - `DATASET_NAME = 'Z31'` in `proc_no_ground.py` is still a constant in `main()` and must be edited by hand.
 
 ## Architecture
