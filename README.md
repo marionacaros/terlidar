@@ -108,18 +108,191 @@ To ensure reproducible results and a fair evaluation of the model, we propose th
 
 > Please adhere to this split when reporting results to ensure benchmarks remain comparable across different runs.
 
-## 📦Code and Environment
+## 📦 Code and Environment
 [Code here](https://github.com/marionacaros/terlidar)
 
-Environment:
-- Python 3.9+
-- PyTorch 1.12+ with CUDA 11.x (recommended)
+`requirements.txt` is the full freeze of the environment the code was developed in
+(Python 3.10, PyTorch 2.3.1); `requirements_conda.txt` is its conda equivalent.
 
-Quick setup:
 ```bash
 conda create -n lora-pn2 python=3.10 -y
 conda activate lora-pn2
 pip install -r requirements.txt
+```
+
+## 🚀 Quickstart
+
+All commands are run **from the repository root**.
+
+1. Check the installation. The tests need no data and no GPU (about 40 s):
+
+   ```bash
+   pytest tests
+   ```
+
+2. Evaluate the shipped LoRA model on TerLiDAR (called `RIB` in the code). `--data_root` is
+   the folder with the preprocessed windows (see [Expected folder layout](#-expected-folder-layout)):
+
+   ```bash
+   python src/LoRA/test_lora_segmentation.py --dataset RIB \
+       --model_checkpoint checkpoints/loraPN2_07-23_12-12_32R32alph16.pt \
+       --max_rank 32 --lora_alpha 16 \
+       --data_root /path/to/RIB_windows
+   ```
+
+   Per-tile IoU is appended to `src/LoRA/metrics/results_RIB/IoU-<checkpoint><n_points>RIB.csv`.
+
+Every script has `--help`. Options shared by the scripts:
+
+| Option | Scripts | Meaning |
+| :--- | :--- | :--- |
+| `--data_root` | ICGC train / test | Folder with the `.pt` windows. The lists in `train_test_files/` hold the absolute paths of the original servers; with `--data_root` only the file names are used. |
+| `--tiles` | ICGC test | Blocks to evaluate (default: the test blocks set in the script). |
+| `--seed` | all | Seed for Python, NumPy and PyTorch. Defaults are the seeds the scripts always used for the train/val split (5 for `train_lora_rib.py`, 4 for the other training scripts). |
+| `--checkpoint_dir`, `--log_dir` | train | Where checkpoints and TensorBoard logs are written (defaults `src/LoRA/checkpoints_lidarcat`, `src/runs/lora`). |
+| `--output_dir` | test | Where the IoU CSV files are written (default under `src/LoRA/metrics/`). |
+
+## 📁 Expected folder layout
+
+```
+terlidar/
+├── checkpoints/                      pretrained weights (CC BY 4.0)
+│   ├── seg_02-24_15-52B29_NOclassifier.pt    PointNet++ baseline trained on B29, without classification head
+│   ├── loraPN2_07-23_12-12_32R32alph16.pt    LoRA (rank 32, alpha 16) adapted to TerLiDAR
+│   └── seg_04-29_18-01lr0001RIB.pt           full fine-tuning on TerLiDAR
+├── train_test_files/                 file lists that define the splits
+│   ├── B29_80x80/                    train / val / test lists of the source domain
+│   └── RIB_smallLoRA_80x80/          train and test lists of TerLiDAR (val_files.txt is empty on purpose:
+│                                     20% of the training files are held out by the training scripts)
+├── proc_no_ground.py                 LAS tiles -> .pt windows (TerLiDAR, B29)
+├── proc_split_LAS_DALES.py           LAS tiles -> .pt windows (DALES)
+├── src/
+│   ├── datasets.py, config.py
+│   └── LoRA/
+│       ├── models/                   PointNet2 (pointnet2_ss.py), LoraPointNet2 (lora_pointnet2_params.py)
+│       ├── train_*.py                training scripts
+│       └── test_*.py                 evaluation scripts (not unit tests)
+├── utils/                            augmentation, sampling, metrics, plots, LAS export
+├── tests/                            pytest smoke tests
+└── show_confusionmatrix_acc.ipynb
+```
+
+Created when the scripts run (ignored by git): `src/LoRA/checkpoints_lidarcat/` (checkpoints),
+`src/runs/lora/` (TensorBoard), `src/LoRA/logs/` (parameter tables), `src/LoRA/metrics/` (results).
+
+Data is kept outside the repository. The scripts read preprocessed windows, one `.pt` tensor
+per 80 x 80 m window with columns `x, y, z, class, I, R, G, B, NIR, NDVI, HAG, point_id`:
+
+```
+/path/to/RIB_windows/                 passed as --data_root
+├── pc_RIB_pt436658_w709.pt           <prefix>_<dataset>_<block>_w<window>.pt
+├── tower_RIB_pt438650_w1471.pt       prefix = target class in the window: tower, lines, othertower, ... or pc
+└── ...
+
+/path/to/B29_windows/                 passed as --data_root; sub-folders are used if they exist
+├── train/
+├── val/
+└── test/
+```
+
+The file names must match those in `train_test_files/`: training scripts oversample windows
+whose name starts with `tower` or `line`, and evaluation scripts group windows by block id.
+
+## 🔁 Reproducing the paper
+
+Step 4 evaluates the three shipped checkpoints (baseline, LoRA and full fine-tuning for the
+TerLiDAR experiments) and only needs the preprocessed windows. Steps 2 and 3 retrain them.
+
+The learning rates below are the ones stored inside the shipped checkpoints. They differ from
+the defaults of the scripts, so they have to be passed explicitly. Training on GPU is not
+bit-for-bit repeatable (see `TODO.md`), so retrained models will be close to, not identical
+to, the shipped ones.
+
+**1. Preprocess** the LAS tiles into windows (80 m windows, 8000 points):
+
+```bash
+python proc_no_ground.py --in_path /path/to/LAS_tiles --out_path /path/to/RIB_windows
+```
+
+The dataset tag written into the file names is the constant `DATASET_NAME` in `main()` of
+`proc_no_ground.py`; set it to `RIB` (or `B29`) before running. See `TODO.md` for the
+preprocessing settings that could not be recovered from the repository.
+
+**2. Baseline** PointNet++ on the source domain (B29):
+
+```bash
+python src/LoRA/train_cat3_pointnet2.py --in_paths train_test_files/B29_80x80 \
+    --data_root /path/to/B29_windows --num_classes 3 --learning_rate 0.0001
+```
+
+This writes `seg_<date>ribPN++.pt` and `seg_<date>ribPN++_NOclassifier.pt` to `--checkpoint_dir`.
+
+**3. Adaptation** to TerLiDAR from the baseline without classification head:
+
+```bash
+# LoRA (rank 32, alpha 16)
+python src/LoRA/train_lora_rib.py --in_paths train_test_files/RIB_smallLoRA_80x80 \
+    --data_root /path/to/RIB_windows \
+    --model_checkpoint checkpoints/seg_02-24_15-52B29_NOclassifier.pt \
+    --min_rank 32 --max_rank 32 --lora_alpha 16 --lr 0.0005
+
+# full fine-tuning
+python src/LoRA/train_ft_rib.py --in_paths train_test_files/RIB_smallLoRA_80x80 \
+    --data_root /path/to/RIB_windows \
+    --model_checkpoint checkpoints/seg_02-24_15-52B29_NOclassifier.pt \
+    --learning_rate 0.0001 --epochs 200
+```
+
+**4. Evaluation** (per-tile, per-class IoU in a CSV under `src/LoRA/metrics/`):
+
+```bash
+# LoRA
+python src/LoRA/test_lora_segmentation.py --dataset RIB --data_root /path/to/RIB_windows \
+    --model_checkpoint checkpoints/loraPN2_07-23_12-12_32R32alph16.pt --max_rank 32 --lora_alpha 16
+
+# full fine-tuning
+python src/LoRA/test_ft_segmentation.py --data_root /path/to/RIB_windows \
+    --model_checkpoint checkpoints/seg_04-29_18-01lr0001RIB.pt
+
+# the adapted model evaluated back on the source domain (B29)
+python src/LoRA/test_lora_segmentation.py --dataset B29 --data_root /path/to/B29_windows \
+    --model_checkpoint checkpoints/loraPN2_07-23_12-12_32R32alph16.pt --max_rank 32 --lora_alpha 16
+```
+
+By default the TerLiDAR evaluation runs on blocks `pt438656`, `pt438652`, `pt438658` and
+`pt440652`. Add `--tiles pt438656 pt438652 pt438658` to evaluate exactly the proposed test split.
+Evaluation draws random groupings of the points, so use the same `--seed` (default 0) to
+compare runs.
+
+**DALES.** The DALES experiments use `proc_split_LAS_DALES.py`, `train_dales_pointnet2.py`,
+`train_lora_dales_pointnet2.py` and `test_*dales_segmentation.py`. Their checkpoints are not
+shipped and their default paths point to the original machine, so `--in_paths` / `--in_path`
+and `--model_checkpoint` must always be given, e.g.
+
+```bash
+python proc_split_LAS_DALES.py --LAS_files_path /path/to/dales_las --out_path /path/to/dales_25x25
+python src/LoRA/train_lora_dales_pointnet2.py --in_paths /path/to/dales_25x25/train \
+    --model_checkpoint <baseline *_NOclassifier.pt>
+python src/LoRA/test_lora_dales_segmentation.py --in_path /path/to/dales_25x25/test \
+    --model_checkpoint <lora .pt> --max_rank 32
+```
+
+TensorBoard: `tensorboard --logdir src/runs/lora`
+
+## 📚 Citation
+
+If you use the code, the pretrained weights or the TerLiDAR dataset, please cite:
+
+```bibtex
+@article{caros2026lora,
+  title   = {Enhancing point cloud semantic segmentation via scalable domain adaptation with {LoRA}-enabled {PointNet++}},
+  author  = {Car{\'o}s, Mariona and Just, Ariadna and Segu{\'i}, Santi and Vitri{\`a}, Jordi},
+  journal = {ISPRS Open Journal of Photogrammetry and Remote Sensing},
+  volume  = {19},
+  pages   = {100119},
+  year    = {2026},
+  doi     = {10.1016/j.ophoto.2026.100119}
+}
 ```
 
 ## License
