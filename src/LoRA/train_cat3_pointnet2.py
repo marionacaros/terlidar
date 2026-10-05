@@ -152,6 +152,8 @@ def train(
         c_weights = [0.1, 0.2,  0.2,  0.2]
     elif num_classes == 5:    
         c_weights = [0.1, 0.2,  0.2,  0.2, 0.1]
+    else:
+        raise ValueError(f'No class weights defined for {num_classes} classes (supported: 3, 4 or 5)')
 
     c_weights = torch.tensor(c_weights).float().to(device)
 
