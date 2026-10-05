@@ -47,6 +47,7 @@ def train(
     # Tensorboard location and plot names
     now = datetime.datetime.now()
     location = 'src/runs/lora/'
+    os.makedirs('src/LoRA/checkpoints_lidarcat', exist_ok=True)
     NAME = 'seg_' + now.strftime("%m-%d-%H:%M") + '_FT' + 'T4'
 
     writer_train = SummaryWriter(location + NAME + '_train')

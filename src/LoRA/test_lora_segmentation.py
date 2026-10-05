@@ -199,7 +199,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_rank', type=int, default=32, help='Lora maximum rank')
     parser.add_argument('--rank', type=int, default=32, help='Lora fixed rank')
     parser.add_argument('--model_checkpoint', type=str,
-                        default='src/LoRA/checkpoints_lidarcat/loraPN2_07-23-12:12_32R32alph16.pt', # best
+                        default='checkpoints/loraPN2_07-23_12-12_32R32alph16.pt', # best
                         # default='src/LoRA/checkpoints_lidarcat/loraPN2_07-25-12:37_64R64alph16.pt', 
                         # default='src/LoRA/checkpoints_lidarcat/loraPN2_07-26-16:24_64R64alph32.pt',
                         # default='src/LoRA/checkpoints_lidarcat/loraPN2_07-28-09:52_4R4alph16.pt',

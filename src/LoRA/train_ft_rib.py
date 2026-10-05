@@ -46,6 +46,7 @@ def train(
     # Tensorboard location and plot names
     now = datetime.datetime.now()
     location = 'src/runs/lora/'
+    os.makedirs('src/LoRA/checkpoints_lidarcat', exist_ok=True)
     NAME = 'seg_' + now.strftime("%m-%d-%H:%M") +'lr0001RIB'
 
     if num_classes>3:
@@ -359,7 +360,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_classes', type=int, default=3, help='number of classes')
     parser.add_argument('--model_checkpoint', 
                         # default='src/LoRA/checkpoints_lidarcat/seg_02-24-15:52B29_NOclassifier.pt',
-                        default='src/LoRA/checkpoints_lidarcat/seg_04-29-18:01lr0001RIB.pt',
+                        default='checkpoints/seg_04-29_18-01lr0001RIB.pt',
                         type=str, help='models checkpoint path')
 
 

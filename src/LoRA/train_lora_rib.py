@@ -51,6 +51,7 @@ def train(
     # Tensorboard location and plot names
     now = datetime.datetime.now()
     location = 'src/runs/lora/'
+    os.makedirs('src/LoRA/checkpoints_lidarcat', exist_ok=True)
     NAME = 'loraPN2_'+ now.strftime("%m-%d-%H:%M") + f'_{lora_min_rank}R'+ f'{lora_max_rank}'+'alph'+str(lora_alpha)
 
     writer_train = SummaryWriter(location + NAME + '_train')
@@ -153,6 +154,7 @@ def train(
     # print(table)
 
     # Export table to a text file
+    os.makedirs("src/LoRA/logs", exist_ok=True)
     with open("src/LoRA/logs/" + NAME + ".txt", "w") as f:
         f.write(f"Total Params: {total_params}\n")
         f.write(f"Min rank: {pointnet.min_rank}\n")
@@ -398,7 +400,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_classes', type=int, default=3, help='number of workers for the dataloader')
     parser.add_argument('--num_features', type=int, default=8, help='number of features')
     parser.add_argument('--model_checkpoint', type=str,
-                        default='src/LoRA/checkpoints_lidarcat/seg_02-24-15:52B29_NOclassifier.pt',
+                        default='checkpoints/seg_02-24_15-52B29_NOclassifier.pt',
                         help='models checkpoint path')
     parser.add_argument('--lora_alpha', type=int, default=16, help='LoRa alpha')
     
