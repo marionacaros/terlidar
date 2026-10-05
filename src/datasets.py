@@ -7,9 +7,7 @@ import numpy as np
 import logging
 import csv 
 from utils.utils_plot import *
-import cv2
 import os
-from scipy.ndimage import gaussian_filter
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     level=logging.INFO,

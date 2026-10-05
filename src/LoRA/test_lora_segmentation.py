@@ -4,7 +4,7 @@ import torch
 import sys
 import logging
 import json
-sys.path.append('/home/m.caros/work/3DSemanticSegmentation')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))  # repository root
 from src.datasets import CAT3SamplingDataset
 from src.LoRA.models.lora_pointnet2_params import *
 from utils.utils import *

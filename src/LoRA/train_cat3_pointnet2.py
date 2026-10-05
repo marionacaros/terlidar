@@ -6,8 +6,9 @@ import logging
 import datetime
 from prettytable import PrettyTable
 import random
+import os
 import sys
-sys.path.append('/home/m.caros/work/3DSemanticSegmentation')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))  # repository root
 from src.datasets import CAT3Dataset
 from src.LoRA.models.pointnet2_ss import *
 from src.config import *
@@ -355,7 +356,6 @@ if __name__ == '__main__':
     parser.add_argument('--model_checkpoint', 
                         type=str, help='models checkpoint path')
 
-    sys.path.append('/home/m.caros/work/3DSemanticSegmentation/')
 
     args = parser.parse_args()
 
