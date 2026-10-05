@@ -26,7 +26,6 @@ from src.LoRA.models.lora_pointnet2_params import *
 from src.config import *
 from utils.utils import *
 from utils.get_metrics import *
-from utils.utils_plot import plot_pc_tensorboard
 from src.LoRA.models.utils import *
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
@@ -247,8 +246,6 @@ def train(
 
     pointnet.to(device)
 
-    # count_parameters(pointnet)
-
     print(f'Memory allocated to CUDA: {torch.cuda.memory_allocated()/1e6} GB')
 
     # schedulers
@@ -413,23 +410,6 @@ def train_loop(data, optimizer, ce_loss, pointnet, w_tensorboard=None, train=Tru
     optimizer.zero_grad()
 
     return metrics, targets_pc, preds
-
-
-def count_parameters(model):
-    total = sum(p.numel() for p in model.parameters())
-    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    frozen = total - trainable
-
-    print(f"🔍 Total de parámetros:     {total:,}")
-    print(f"✅ Parámetros entrenables:  {trainable:,}")
-    print(f"❄️  Parámetros congelados:   {frozen:,}")
-    print(f"📉 Porcentaje entrenable:   {trainable / total * 100:.2f}%")
-    
-    # También podrías imprimir qué capas están entrenables, por si quieres más detalle
-    print("\n🔧 Capas con parámetros entrenables:")
-    for name, param in model.named_parameters():
-        if param.requires_grad:
-            print(f" - {name}: {param.numel():,} parámetros")
 
 
 # ------------------------------------------------------------------------------------------------------------------------------

@@ -85,20 +85,6 @@ def get_accuracy(preds: torch.Tensor, targets: torch.Tensor, metrics: dict) -> d
     return metrics
 
 
-def get_weighted_accuracy(preds: torch.Tensor, targets: torch.Tensor, metrics: dict,
-                          c_weights: torch.Tensor) -> dict:
-    """
-    Store the balanced accuracy, with points weighted by the weight of their class, in
-    ``metrics['accuracy_w']`` and return ``metrics``. Two classes only (see ``get_weights4sample``).
-    """
-
-    sample_weights = get_weights4sample(c_weights, targets.view(-1))
-    accuracy_w = balanced_accuracy_score(targets, preds, sample_weight=sample_weights)
-    metrics['accuracy_w'] = accuracy_w
-
-    return metrics
-
-
 def get_weights_effective_num_of_samples(n_of_classes: int, beta: float,
                                          samples_per_cls: Sequence[float]) -> np.ndarray:
     """
@@ -155,27 +141,3 @@ def get_weights4class(weighing_method: str, n_classes: int, samples_per_cls: Seq
 
     weights4class = torch.tensor(weights4class).float()
     return weights4class
-
-
-def get_weights4sample(weights4class: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
-    """
-    Weight of each point, taken from the weight of its class. The one-hot encoding has two
-    columns, so this only supports two classes.
-
-    :param weights4class: Torch Tensor of size [n_classes]
-    :param labels: Torch Long Tensor of size [batch * n points]
-
-    :return: Torch Tensor of size [batch * n points]
-    """
-    # one-hot encoding
-    labels = labels.to('cpu').numpy()  # labels defines columns of non-zero elements
-    one_hot = np.zeros((labels.size, 2))  # [batch, 2]
-    rows = np.arange(labels.size)
-    one_hot[rows, labels] = 1
-
-    weights4samples = weights4class.to('cpu').unsqueeze(0)
-    weights4samples = weights4samples.repeat(labels.shape[0], 1)
-    weights4samples = torch.tensor(np.array(weights4samples * one_hot))
-    weights4samples = weights4samples.sum(1).cpu()
-
-    return weights4samples

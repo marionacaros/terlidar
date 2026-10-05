@@ -24,7 +24,6 @@ from src.LoRA.models.lora_pointnet2_params import *
 from src.config import *
 from utils.utils import *
 from utils.get_metrics import *
-from utils.utils_plot import plot_pc_tensorboard
 from src.LoRA.models.utils import *
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
@@ -352,15 +351,6 @@ def train_loop(data, optimizer, ce_loss, pointnet, w_tensorboard=None, train=Tru
     probs = F.log_softmax(logits.detach().to('cpu'), dim=1)
     preds = torch.LongTensor(probs.data.max(1)[1])
 
-    # plot predictions in Tensorboard
-    # if epoch % 10 == 0 and epoch > 0 and random.random() < 0.05 and 1 in set(targets_pc[:4096].numpy()):
-    #     # preds_plot, targets_plot, mask = rm_padding(preds[0, :].cpu(), targets_pc[0, :])
-    #     preds_plot, targets_plot = preds[:4096], targets_pc[:4096]
-    #     # Tensorboard
-    #     plot_pc_tensorboard(pc[0, :, :].T.cpu(), targets_plot, None, fname_0 +'_targets', step=epoch,
-    #                         classes=N_CLASSES, model_name=model_name)
-    #     plot_pc_tensorboard(pc[0, :, :].T.cpu(), preds_plot, None, fname_0 + '_predictions', step=epoch,
-    #                         classes=N_CLASSES, model_name=model_name)
 
     if train:
         metrics['loss'].backward()
