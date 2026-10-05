@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+
+# outputs written by the training / evaluation scripts
+src/runs/
+src/LoRA/logs/
+src/LoRA/checkpoints_lidarcat/
+src/LoRA/metrics/
+cm_figures/
