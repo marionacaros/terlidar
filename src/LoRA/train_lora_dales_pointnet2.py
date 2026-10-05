@@ -1,3 +1,13 @@
+"""Adapt a baseline PointNet++ to DALES (6 classes) with LoRA.
+
+Baseline weights are copied positionally into LoraPointNet2 and frozen; only the LoRA matrices
+and the classification head are trained. Uses the windows of four hardcoded DALES tiles found
+in --in_paths (80% train, 20% validation).
+
+Run from the repository root, e.g.
+    python src/LoRA/train_lora_dales_pointnet2.py --in_paths <dir with DALES .pt windows> \
+        --model_checkpoint <baseline *_NOclassifier.pt>
+"""
 import argparse
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
@@ -36,6 +46,29 @@ def train(
         lora_max_rank=64,
         checkpoint_dir='src/LoRA/checkpoints_lidarcat',
         log_dir='src/runs/lora'):
+    """
+    Train LoraPointNet2 on DALES with the 6-class label space.
+    Baseline weights are copied by position: the 44 LoRA tensors that come first in the state
+    dict and the 2 head tensors that come last are skipped.
+
+    Each epoch runs train_loop over the training and validation loaders, logs loss, accuracy and
+    per-class IoU to TensorBoard, and saves a checkpoint whenever the mean validation loss improves.
+
+    :param path_files: directory with the DALES .pt windows
+    :param num_feat: input channels per point
+    :param num_classes: number of classes of the model
+    :param lora_fix_rank: passed to LoraPointNet2 as lora_fix_rank; any non-zero value means
+        every layer uses lora_max_rank
+    :param lora_max_rank: LoRA rank (upper bound when the rank is not fixed)
+    :param n_points: points per window returned by the dataset (train_loop then uses 4096 of them)
+    :param batch_size: batch size
+    :param epochs: number of epochs
+    :param learning_rate: Adam learning rate (cosine annealing over epochs - 10)
+    :param number_of_workers: dataloader workers
+    :param model_checkpoint: checkpoint to start from; empty or None to skip loading
+    :param checkpoint_dir: directory where the checkpoint is written
+    :param log_dir: directory for TensorBoard logs
+    """
     
     start_time = time()
 
@@ -266,8 +299,16 @@ def train(
 def train_loop(data, optimizer, ce_loss, pointnet, w_tensorboard=None, train=True,
                epoch=0, device='cuda',num_feat=5, num_classes=5, n_points=8000):
     """
+    Process one batch: keep 4096 random points of each window, rotate the batch around z by a
+    random angle, forward pass and loss; when train is True also colour dropout (with
+    probability COLOR_DROPOUT), backward pass and optimizer step.
+
+    :param data: batch from the dataloader (pc [B, n_points, D], targets [B, n_points], filenames)
+    :param train: training step if True, evaluation step otherwise
+    :param w_tensorboard: unused
+    :param epoch: unused
     :return:
-    metrics, targets, preds, last_epoch
+    metrics (dict with 'loss'), targets [B * 4096] on cpu, preds [B * 4096] on cpu
     """
     metrics = {'accuracy': []}
     pc, targets, filenames = data
