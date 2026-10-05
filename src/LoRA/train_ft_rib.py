@@ -32,7 +32,9 @@ def train(
         model_checkpoint,
         num_feat=8,
         num_classes=5,
-        data_root=None):
+        data_root=None,
+        checkpoint_dir='src/LoRA/checkpoints_lidarcat',
+        log_dir='src/runs/lora'):
     
     start_time = time.time()
 
@@ -45,8 +47,8 @@ def train(
 
     # Tensorboard location and plot names
     now = datetime.datetime.now()
-    location = 'src/runs/lora/'
-    os.makedirs('src/LoRA/checkpoints_lidarcat', exist_ok=True)
+    location = os.path.join(log_dir, '')
+    os.makedirs(checkpoint_dir, exist_ok=True)
     NAME = 'seg_' + now.strftime("%m-%d-%H:%M") +'lr0001RIB'
 
     if num_classes>3:
@@ -257,7 +259,7 @@ def train(
         # ------------------------------------------------------------------------------------------------------
         # Save checkpoint
         if np.mean(epoch_val_loss) < best_vloss:
-            name = 'src/LoRA/checkpoints_lidarcat/'+ NAME 
+            name = os.path.join(checkpoint_dir, NAME)
             # if epoch>100:
                 # name = name + 'e' + str(epoch)
             # save_checkpoint_without_classifier_layer( name + '_NOclassifier', pointnet, optimizer, 
@@ -365,6 +367,10 @@ if __name__ == '__main__':
 
     parser.add_argument('--data_root', type=str, default=None,
                         help='directory with the preprocessed .pt files; overrides the directories stored in the file lists')
+    parser.add_argument('--checkpoint_dir', type=str, default='src/LoRA/checkpoints_lidarcat',
+                        help='directory where checkpoints are saved')
+    parser.add_argument('--log_dir', type=str, default='src/runs/lora',
+                        help='directory for TensorBoard logs')
     parser.add_argument('--seed', type=int, default=4, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
     set_seed(args.seed)
@@ -379,4 +385,6 @@ if __name__ == '__main__':
         args.model_checkpoint,
         num_feat=8,
         num_classes=args.num_classes,
-        data_root=args.data_root)
+        data_root=args.data_root,
+        checkpoint_dir=args.checkpoint_dir,
+        log_dir=args.log_dir)
