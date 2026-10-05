@@ -9,9 +9,10 @@ from sklearn.neighbors import KDTree, NearestNeighbors
 import random
 from scipy.spatial import cKDTree
 import math
+from typing import List, Optional, Tuple
 
 
-def read_file_list(list_path, data_root=None):
+def read_file_list(list_path: str, data_root: Optional[str] = None) -> List[str]:
     """
     Read a text file with one point cloud path per line.
 
@@ -38,9 +39,12 @@ def read_file_list(list_path, data_root=None):
     return files
 
 
-def set_seed(seed):
+def set_seed(seed: int) -> None:
     """
     Seed the Python, NumPy and PyTorch random number generators.
+
+    cuDNN is left in its default (non-deterministic) mode, so runs on GPU with the same seed
+    can still differ slightly.
 
     :param seed: int
     """
@@ -54,18 +58,25 @@ def set_seed(seed):
 # ---------------------------------------------- Preprocessing ----------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------------------------
 
-def preprocessing(pc, max_h=200.0, n_points=8000, max_points=400000):
+def preprocessing(pc: np.ndarray, max_h: float = 200.0, n_points: int = 8000,
+                  max_points: int = 400000) -> np.ndarray:
     """
     Perform preprocessing on a given point cloud.
 
     Steps:
-    1. Remove outliers and points with negative z-coordinates.
+    1. Remove outliers (height above ground > max_h) and points with negative height above
+       ground; divide the height above ground by max_h.
     2. Calculate and clip the Normalized Difference Vegetation Index (NDVI) within the range [-1, 1].
-    3. Check the number of non-ground points and augment the dataset by adding more ground points if needed.
+    3. If there are between 100 and n_points non-ground points, keep only as many ground
+       points (class 2) as needed to reach n_points.
     4. If there are already enough non-ground points, remove the ground points.
 
     Parameters:
-    - pc (numpy.ndarray): Input point cloud data.
+    - pc (numpy.ndarray): Input point cloud data [points, 12] with columns
+      x, y, z, class, I, R, G, B, NIR, NDVI, HAG, point_id.
+    - max_h (float): maximum height above ground kept, also the HAG normalisation constant.
+    - n_points (int): number of points a window should have.
+    - max_points (int): only used to print a warning for very large windows.
 
     Returns:
     - pc numpy.ndarray: Processed point cloud after the specified preprocessing steps.
@@ -293,7 +304,12 @@ def pc_normalize_neg_one(pc):
     return pc
 
 
-def rm_padding(preds, targets):
+def rm_padding(preds: torch.Tensor, targets: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Drop the points whose target is -1 (padding / ignored).
+
+    :return: preds and targets without those points, and the boolean mask of kept points
+    """
     mask = targets != -1
     targets = targets[mask]
     preds = preds[mask]
@@ -329,6 +345,10 @@ def save_checkpoint_segmen_model(name, task, epoch, epochs_since_improvement, ba
 
 
 def save_checkpoint_without_classifier_layer(name, model, optimizer, batch_size, learning_rate, n_points, epoch):
+    """
+    Save ``<name>.pt`` without the ``classifier`` layer of the model.
+    Same function as in src/LoRA/models/utils.py.
+    """
     
     state_dict=model.state_dict()
     # Remove the last layer from the state dictionary
@@ -350,6 +370,13 @@ def save_checkpoint_without_classifier_layer(name, model, optimizer, batch_size,
 def save_checkpoint(name, epoch, epochs_since_improvement, model, optimizer, accuracy, batch_size,
                     learning_rate, n_points, weighing_method=None, weights=[], label_smoothing=None,
                     color_dropout=None):
+    """
+    Save a checkpoint to ``src/checkpoints/<name>.pth`` (helper from the parent project).
+
+    The training scripts under src/LoRA/ import ``save_checkpoint`` from src/LoRA/models/utils.py
+    after this module, so they use that one, which has a different signature and writes
+    ``<name>.pt``.
+    """
     state = {
         'model': model.state_dict(),
         'optimizer': optimizer.state_dict(),
@@ -381,7 +408,8 @@ def adjust_learning_rate(optimizer, shrink_factor=0.1):
     print("\nDECAYING learning rate. The new lr is %f" % (optimizer.param_groups[0]['lr'],))
 
 
-def weights_init(m):
+def weights_init(m: torch.nn.Module) -> None:
+    """Xavier-normal weights and zero bias for Conv2d and Linear layers; use with ``model.apply``."""
     classname = m.__class__.__name__
     if classname.find('Conv2d') != -1:
         torch.nn.init.xavier_normal_(m.weight.data)
@@ -391,7 +419,8 @@ def weights_init(m):
         torch.nn.init.constant_(m.bias.data, 0.0)
 
 
-def inplace_relu(m):
+def inplace_relu(m: torch.nn.Module) -> None:
+    """Make ReLU layers operate in place; use with ``model.apply``."""
     classname = m.__class__.__name__
     if classname.find('ReLU') != -1:
         m.inplace = True
@@ -447,11 +476,12 @@ def rotate_point_cloud_z_numpy(batch_data, rotation_angle=None):
     return rotated_data
 
 
-def rotate_point_cloud_z(batch_data, rotation_angle=None):
+def rotate_point_cloud_z(batch_data: torch.Tensor, rotation_angle: Optional[float] = None) -> torch.Tensor:
     """
     Randomly rotate the point clouds around the Z-axis to augment the dataset.
     Rotation is per shape based along up (Z) direction.
     Use input angle if given.
+    One angle is drawn with torch.rand for the whole batch.
     
     Input:
       batch_data: BxNx3 tensor, original batch of point clouds
@@ -807,7 +837,8 @@ def fps(pc, n_samples):
     return pc[sample_inds]
 
 
-def get_ndvi(nir, red):
+def get_ndvi(nir: np.ndarray, red: np.ndarray) -> np.ndarray:
+    """NDVI = (nir - red) / (nir + red), with 0 where nir + red == 0."""
     a = (nir - red)
     b = (nir + red)
     c = np.divide(a, b, out=np.zeros_like(a, dtype=float), where=b != 0)
@@ -872,14 +903,21 @@ def random_point_dropout(batch_pc, max_dropout_ratio=0.875):
 ###################################################### samplings #######################################################
 
 
-def get_sampled_sequence(pc, ids, n_points):
+def get_sampled_sequence(pc: torch.Tensor, ids: torch.Tensor,
+                         n_points: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     reshape tensor into sequence of n_points
+
+    The points are shuffled (torch.randperm) and cut into consecutive groups of n_points, so
+    that every point goes through the model. The last group is completed with points from the
+    start of the shuffled cloud; a cloud with fewer than n_points points is completed with
+    randomly repeated points.
 
     :param pc: Input tensor float32 of shape: [points, dims]
     :param ids: point ids int
     :param n_points: Number of points in each sequence
-    :return: Sampled sequences pc tensor, ids and indices
+    :return: Sampled sequences pc tensor [n_sequences, n_points, dims], the ids of the points in
+        the same order (flattened), and the permutation that was applied
     """
 
     # Shuffle

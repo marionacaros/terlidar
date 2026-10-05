@@ -1,5 +1,6 @@
 import os
 import random
+from typing import List, Optional
 from utils.utils import *
 import torch.utils.data as data
 import torch
@@ -18,22 +19,51 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
 
 
 class CAT3Dataset(data.Dataset):
+    """
+    Training dataset for ICGC-style windows (B29, RIB/TerLiDAR).
+
+    Each file is a ``.pt`` tensor [points, 12] written by proc_no_ground.py with columns
+    x, y, z, class, I, R, G, B, NIR, NDVI, HAG, point_id. Per window, x and y are normalised to
+    [-1, 1] and z to [0, 1], and ``number_of_points`` points are drawn at random (points are
+    repeated if the window has fewer).
+
+    An item is ``(pc, labels, filename)`` where ``pc`` has the columns
+    x, y, HAG, z, I, G, B, NDVI when ``use_z`` (8 features) or x, y, HAG, I, G, B, NDVI
+    otherwise (7 features), and ``labels`` are the training labels of ``get_labels_segmen``.
+    """
 
     def __init__(self,
-                 task='segmentation',
-                 number_of_points=None,
-                 files=None,
-                 fixed_num_points=True,
-                 return_xyz=False,
-                 use_z=False,
-                 use_windturbine=True,
-                 store_filtered_paths=None,
-                 check_files=False,
-                 is_prod=False,
-                 add_noise_to_pc=False,
-                 remove_classes=[],
-                 max_z = None
-                 ):
+                 task: str = 'segmentation',
+                 number_of_points: Optional[int] = None,
+                 files: Optional[List[str]] = None,
+                 fixed_num_points: bool = True,
+                 return_xyz: bool = False,
+                 use_z: bool = False,
+                 use_windturbine: bool = True,
+                 store_filtered_paths: Optional[str] = None,
+                 check_files: bool = False,
+                 is_prod: bool = False,
+                 add_noise_to_pc: bool = False,
+                 remove_classes: list = [],
+                 max_z: Optional[float] = None
+                 ) -> None:
+        """
+        :param task: kept for compatibility, only stored
+        :param number_of_points: points per item
+        :param files: paths of the ``.pt`` windows
+        :param fixed_num_points: sample or repeat points so every item has ``number_of_points``
+        :param return_xyz: only stored
+        :param use_z: add the normalised z as a feature (8 features instead of 7)
+        :param use_windturbine: label wind turbines / other towers (LAS 29, 19, 18) as class 3
+        :param store_filtered_paths: if set, append the paths kept by ``check_files`` to this file
+        :param check_files: drop windows with fewer than ``number_of_points`` points or whose
+            maximum height above ground is below 5 m (reads every file once)
+        :param is_prod: use the production label space instead of the one of the paper
+        :param add_noise_to_pc: only stored
+        :param remove_classes: raw LAS classes removed from every window
+        :param max_z: if set, z is divided by this value and clipped to [0, 1], and the per-window
+            normalised z is appended as an extra column; if None z is normalised per window
+        """
 
         self.task = task
         self.n_points = number_of_points
@@ -75,10 +105,10 @@ class CAT3Dataset(data.Dataset):
     def __getitem__(self, index):
         """
         :param index: index of the file
-            input dims: x, y, z, class, I, R, G, NIR, NDVI, HAG, point_ID
-        :return: pc: [n_points, 5], labels, filename
+            input dims: x, y, z, class, I, R, G, B, NIR, NDVI, HAG, point_ID
+        :return: pc: [n_points, 8] or [n_points, 7], labels, filename
             if use_z: out dims: x, y, HAG, z, I, G, B, NDVI
-            else: out dims: x, y, z, I, G, B, NDVI
+            else: out dims: x, y, HAG, I, G, B, NDVI
         """
         filename = self.paths_files[index]
         pc = self.prepare_data(filename)
@@ -267,7 +297,15 @@ class CAT3Dataset(data.Dataset):
         1 -> towers
         2 -> lines
 
-        :param pointcloud: [num_points, dim]
+        Label space used in the paper (is_prod=False, use_windturbine=False, default_class=0):
+        0 -> surrounding / everything else, 1 -> transmission tower (LAS 15), 2 -> power lines (LAS 14).
+        Ground (LAS 2) is mapped to 0 as well. With use_windturbine=True, LAS 29, 19 and 18 become 3.
+
+        :param pointcloud: [num_points, dim], raw LAS class in column 3
+        :param is_prod: use the production label space
+        :param use_windturbine: add the wind turbine class (ignored when is_prod)
+        :param default_class: label of every class not listed above
+        :param is_train: only used when is_prod
         :return labels: classes of points [num_points]
         """
 
@@ -542,6 +580,17 @@ class CAT3DatasetViews(CAT3Dataset):
 
 
 class CAT3SamplingDataset(CAT3Dataset):
+    """
+    Evaluation dataset for ICGC-style windows.
+
+    Instead of sampling ``n_points`` once, every point of the window is kept: the window is
+    shuffled and cut into groups of ``n_points`` (see ``get_sampled_sequence``), and the point
+    ids are returned so that predictions of overlapping windows can be merged per tile.
+
+    An item is ``(pc, labels, filename, ids, n_unique_pts, xyz)`` with ``pc`` of shape
+    [n_groups, n_points, 8] (9 when ``keep_labels``, the label being the last column).
+    The evaluation scripts use ``tile_ids=True``, which takes the ids from column 11 of the file.
+    """
 
     def __init__(self,
                  task='segmentation',
@@ -1127,15 +1176,36 @@ class BarlowTwinsDataset(data.Dataset):
 ##### -------------------------------------------- DALES DATASET ---------------------------------------------------
 
 class DalesDataset(data.Dataset):
+    """
+    Training dataset for DALES windows written by proc_split_LAS_DALES.py.
+
+    Each file is a ``.pt`` tensor [points, 6] with columns
+    x, y, z, classification, return_number, number_of_returns. An item is
+    ``(pc, labels, filename)`` with ``pc`` [n_points, 5]: x, y in [-1, 1], z / 200 clipped to
+    [0, 1], return number / 7 and number of returns / 7.
+
+    Labels come from ``get_labels`` (4 classes) or, with ``use_all_labels``, from
+    ``get_all_labels`` (6 classes and -1 for points to ignore).
+    """
 
     def __init__(self,
-                 files,
-                 task='segmentation',
-                 number_of_points=None,
-                 fixed_num_points=True,
-                 get_centroids=False,
-                 check_pts_files=False,
-                 use_all_labels=False):
+                 files: List[str],
+                 task: str = 'segmentation',
+                 number_of_points: Optional[int] = None,
+                 fixed_num_points: bool = True,
+                 get_centroids: bool = False,
+                 check_pts_files: bool = False,
+                 use_all_labels: bool = False) -> None:
+        """
+        :param files: paths of the ``.pt`` windows
+        :param task: only stored
+        :param number_of_points: points per item
+        :param fixed_num_points: sample (with replacement) or repeat points so every item has
+            ``number_of_points``
+        :param get_centroids: also return the x, y centroid of the item
+        :param check_pts_files: drop windows with 1024 points or fewer (reads every file once)
+        :param use_all_labels: use the 6-class label space instead of the 4-class one
+        """
         
         self.files = files
         self.task = task
@@ -1282,15 +1352,15 @@ class DalesDataset(data.Dataset):
         Inputs segmentation labels: categories: ground(1), vegetation(2), cars(3), trucks(4), power lines(5), fences(6), poles(7) and buildings(8).
 
         Output segmentation labels:
-        0 -> other
-        1 -> ground
-        2 -> poles
-        3 -> power lines
-        4 -> veg
-        5 -> buildings
-        6 -> cars and trucks
+        -1 -> undefined (0) and fences (6), ignored by the loss
+        0 -> ground
+        1 -> poles
+        2 -> power lines
+        3 -> vegetation
+        4 -> buildings
+        5 -> cars and trucks
 
-        :param pc: [n_points]
+        :param seg_labels: raw DALES classes [n_points]
         :return labels: points with categories to segment or classify
         """
 
@@ -1310,6 +1380,15 @@ class DalesDataset(data.Dataset):
 
 
 class DalesSamplingDataset(DalesDataset):
+    """
+    Evaluation dataset for DALES windows.
+
+    Every point of the window is kept: the window is shuffled and cut into groups of
+    ``number_of_points`` (see ``get_sampled_sequence``). An item is
+    ``(pc, labels, filename, ids)`` with ``pc`` of shape [n_groups, n_points, 5] (6 when
+    ``keep_labels``, the label being the last column) and ``ids`` the index of each point in
+    the window.
+    """
 
     def __init__(self,
                  files,
