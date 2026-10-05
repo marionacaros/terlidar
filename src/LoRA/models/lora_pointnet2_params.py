@@ -4,24 +4,52 @@ from torch import nn
 from torch.nn import functional as F
 import torch.nn.functional as F
 import math
+from typing import List
 from src.LoRA.models.pointnet2_utils import *
 from src.LoRA.models.utils import *
 
 
 class LoraPointNet2(nn.Module):
     """
-    Lora applied to PointNet++
+    Single-scale PointNet++ segmentation network with LoRA on every 1x1 convolution.
+
+    The architecture is the one of ``PointNet2`` (pointnet2_ss.py) written out layer by layer
+    (``mlp_convs_1..4`` for the set-abstraction levels, ``mlp_convs_fp4..1`` for feature
+    propagation, ``conv1`` and ``lora_classifier`` for the head) so that the output of each
+    convolution can be summed with a low-rank update ``(alpha / rank) * x @ (A @ B)``.
+
+    Trainability is decided by parameter name: parameters whose name contains ``lora`` are
+    trainable (the A/B matrices and the classification head ``lora_classifier``), every other
+    parameter is frozen. A matrices use Kaiming-uniform initialisation and B matrices start at
+    zero, so a freshly built model gives the same output as the baseline whose weights it holds.
+
+    LoRA matrices are registered as ``lora_sa{1..12}_A/B`` (set abstraction),
+    ``lora_fp{1..9}_A/B`` (feature propagation) and ``lora_l1_A/B`` (``conv1``). They come first
+    in ``state_dict()``; the training scripts rely on this order to copy baseline weights
+    positionally, so the number and order of parameters must not change.
     """
 
     def __init__(self,
-                 num_classes=5,
-                 num_feat=5,
-                 lora_fix_rank=False,
-                 lora_max_rank=64,
-                 lora_min_rank=16,
-                 alpha=1,
-                 radius=[0.1, 0.2, 0.4, 0.8] 
-                 ):
+                 num_classes: int = 5,
+                 num_feat: int = 5,
+                 lora_fix_rank: bool = False,
+                 lora_max_rank: int = 64,
+                 lora_min_rank: int = 16,
+                 alpha: float = 1,
+                 radius: List[float] = [0.1, 0.2, 0.4, 0.8] 
+                 ) -> None:
+        """
+        :param num_classes: number of output classes
+        :param num_feat: number of input channels per point, coordinates included
+            (8 for ICGC data: x, y, HAG, z, I, G, B, NDVI; 5 for DALES)
+        :param lora_fix_rank: if True every LoRA matrix has rank ``lora_max_rank``; otherwise the
+            rank of each layer is the next power of two of ``in_channels * out_channels / 1000``,
+            clamped to ``[lora_min_rank, lora_max_rank]``
+        :param lora_max_rank: upper bound of the rank (the rank itself when ``lora_fix_rank``)
+        :param lora_min_rank: lower bound of the rank, only used when ``lora_fix_rank`` is False
+        :param alpha: LoRA scaling factor; the update is multiplied by ``alpha / rank``
+        :param radius: ball-query radius of the four set-abstraction levels, in normalised coordinates
+        """
         super().__init__()
 
         self.num_classes = num_classes
@@ -183,7 +211,11 @@ class LoraPointNet2(nn.Module):
     )   
     
     # Helper function to get the nearest power of 2 within constraints
-    def nearest_power_of_2(self, n, min_rank, max_rank):
+    def nearest_power_of_2(self, n: int, min_rank: int, max_rank: int) -> int:
+        """
+        Smallest power of two that is >= n, clamped to [min_rank, max_rank].
+        Returns min_rank when n <= 0.
+        """
         if n <= 0:
             return min_rank  # Default to min_rank if n is 0 or negative
         power_of_2 = 2 ** math.ceil(math.log2(n))
@@ -191,13 +223,13 @@ class LoraPointNet2(nn.Module):
         return max(min_rank, min(max_rank, power_of_2))
 
 
-    def forward(self, pc):
+    def forward(self, pc: torch.Tensor) -> torch.Tensor:
         """
         Input:
-            pc: input points data, [B, D, N]
+            pc: input points data, [B, D, N] with D = num_feat. The first three channels are
+                used as coordinates for sampling and grouping. N must be at least 1024.
         Return:
-            new_xyz: sampled points position data, [B, C, S]
-            new_points_concat: sample points feature data, [B, D', S]
+            per-point log-probabilities, [B, N, num_classes]
         """
         radius=self.radius
 
@@ -386,11 +418,12 @@ class LoraPointNet2(nn.Module):
         return x
 
 
-    def _compute_lora_weight(self, A, B):
+    def _compute_lora_weight(self, A: torch.Tensor, B: torch.Tensor) -> torch.Tensor:
         # Computes scaled LoRA weight once
         return (self.lora_alpha / A.shape[1]) * (A @ B)
 
-    def lora_bmm4d(self, x, layer, lora_A, lora_B, alpha=1):
+    def lora_bmm4d(self, x: torch.Tensor, layer: nn.Module, lora_A: torch.Tensor, lora_B: torch.Tensor,
+                   alpha: float = 1) -> torch.Tensor:
         """
         Applies Low-Rank Adaptation (LoRA) to the output of a given layer using
         batch matrix multiplication.
@@ -400,6 +433,7 @@ class LoraPointNet2(nn.Module):
         - layer (torch.nn.Module): The layer to which the input tensor `x` is passed
         - lora_A (torch.Tensor): The first low-rank matrix of shape [input_features, rank]
         - lora_B (torch.Tensor): The second low-rank matrix of shape [rank, output_features]
+        - alpha (float): LoRA scaling factor; the update is multiplied by alpha / rank
           
           A shape: torch.Size([11, 16])
           B shape: torch.Size([16, 32])
@@ -429,7 +463,8 @@ class LoraPointNet2(nn.Module):
         return h + lora_res
     
 
-    def lora_bmm3d(self, x, layer, lora_A, lora_B, alpha=1):
+    def lora_bmm3d(self, x: torch.Tensor, layer: nn.Module, lora_A: torch.Tensor, lora_B: torch.Tensor,
+                   alpha: float = 1) -> torch.Tensor:
 
         """
         Applies Low-Rank Adaptation (LoRA) to the output of a given layer using
@@ -440,6 +475,7 @@ class LoraPointNet2(nn.Module):
         - layer (torch.nn.Module): The layer to which the input tensor `x` is passed
         - lora_A (torch.Tensor): The first low-rank matrix of shape [input_features, rank]
         - lora_B (torch.Tensor): The second low-rank matrix of shape [rank, output_features]
+        - alpha (float): LoRA scaling factor; the update is multiplied by alpha / rank
 
         Returns:
         - h (torch.Tensor): Output tensor after applying the LoRA transformation,

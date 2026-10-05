@@ -7,8 +7,16 @@ import matplotlib.pyplot as plt
 torch.set_float32_matmul_precision('high')
 
 
-def save_checkpoint(name, model, optimizer, batch_size,
-                    learning_rate, n_points, epoch):
+def save_checkpoint(name: str, model: nn.Module, optimizer: torch.optim.Optimizer, batch_size: int,
+                    learning_rate: float, n_points: int, epoch: int) -> None:
+    """
+    Save a training checkpoint to ``<name>.pt``.
+
+    The file is a dict with keys ``model`` and ``optimizer`` (state dicts), ``batch_size``,
+    ``lr``, ``number_of_points`` and ``epoch``.
+
+    :param name: output path without the ``.pt`` extension
+    """
     state = {
         'model': model.state_dict(),
         'optimizer': optimizer.state_dict(),
@@ -21,7 +29,16 @@ def save_checkpoint(name, model, optimizer, batch_size,
     torch.save(state, filename)
     
     
-def save_checkpoint_without_classifier_layer(name, model, optimizer, batch_size, learning_rate, n_points, epoch):
+def save_checkpoint_without_classifier_layer(name: str, model: nn.Module, optimizer: torch.optim.Optimizer,
+                                             batch_size: int, learning_rate: float, n_points: int,
+                                             epoch: int) -> None:
+    """
+    Same as ``save_checkpoint`` but without ``classifier.weight`` and ``classifier.bias`` in the
+    model state dict, so the checkpoint can initialise a model with a different number of classes.
+    The model must have a layer named ``classifier`` (``PointNet2``).
+
+    :param name: output path without the ``.pt`` extension
+    """
     
     state_dict=model.state_dict()
     # Remove the last layer from the state dictionary
@@ -40,7 +57,8 @@ def save_checkpoint_without_classifier_layer(name, model, optimizer, batch_size,
     torch.save(state, filename)
 
     
-def plot_pc(sample_pc, i=0):
+def plot_pc(sample_pc: torch.Tensor, i: int = 0) -> None:
+    """Show a 3D scatter plot of cloud ``i`` of a batch [B, N, >=3], coloured by z."""
     # Convert to numpy array
     sample_pc_np = sample_pc.numpy()
 
