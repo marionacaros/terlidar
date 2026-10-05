@@ -1,3 +1,13 @@
+"""Evaluate a LoRA PointNet++ checkpoint on RIB (TerLiDAR) or B29 tiles.
+
+Predictions of all windows of a tile are merged per point by majority vote. Appends per-tile,
+per-class IoU to a CSV in --output_dir. --max_rank and --lora_alpha must match the values the
+checkpoint was trained with.
+
+Run from the repository root, e.g.
+    python src/LoRA/test_lora_segmentation.py --dataset RIB \
+        --model_checkpoint checkpoints/loraPN2_07-23_12-12_32R32alph16.pt --max_rank 32 --lora_alpha 16
+"""
 import argparse
 import os.path
 import torch
@@ -21,6 +31,14 @@ global DATASET, DEVICE
 
 
 def load_model(model_checkpoint, n_classes, num_features=8, lora_max_rank=64,  lora_alpha=1, lora_fixed_rank=True):
+    """
+    Build the model, load the weights of a checkpoint and log its training settings.
+    The model is moved to the global DEVICE.
+
+    :param model_checkpoint: path of the .pt checkpoint
+    :param n_classes: number of classes the checkpoint was trained with
+    :return: the model
+    """
 
     checkpoint = torch.load(model_checkpoint)
 
@@ -69,6 +87,25 @@ def test(output_dir,
          plot_objects=False,
          n_classes=5,
          tile=''):
+    """
+    Predict the windows of one tile and merge the predictions per point.
+
+    Each window is predicted in groups of n_points points (and, depending on its size, again
+    with a different random grouping); the class of a point is the one predicted most often for
+    its id across groups and overlapping windows.
+
+    :param output_dir: directory for plots when plot_objects is True
+    :param number_of_workers: dataloader workers
+    :param model: model on the global DEVICE
+    :param list_files: paths of the .pt windows of the tile
+    :param n_points: points per forward pass
+    :param targets_arr: unused
+    :param preds_arr: unused
+    :param plot_objects: save prediction plots
+    :param n_classes: number of classes of the model
+    :return: labels and predicted classes of the points that went through the model, and the
+        ids of those points
+    """
     
     # net to eval mode
     model = model.eval()

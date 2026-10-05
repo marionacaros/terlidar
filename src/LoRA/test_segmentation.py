@@ -1,3 +1,11 @@
+"""Evaluate a baseline PointNet++ checkpoint on ICGC-style tiles (B29 or RIB/TerLiDAR).
+
+Predictions of all windows of a tile are merged per point by majority vote. Appends per-tile,
+per-class IoU to a CSV in --output_dir and writes one confusion matrix per tile.
+
+Run from the repository root, e.g.
+    python src/LoRA/test_segmentation.py --model_checkpoint <baseline .pt> --num_classes 3
+"""
 import argparse
 import os.path
 import time
@@ -23,6 +31,14 @@ global DATASET, DEVICE
 
 
 def load_model(model_checkpoint, n_classes):
+    """
+    Build the model, load the weights of a checkpoint and log its training settings.
+    The model is moved to the global DEVICE.
+
+    :param model_checkpoint: path of the .pt checkpoint
+    :param n_classes: number of classes the checkpoint was trained with
+    :return: the model
+    """
     checkpoint = torch.load(model_checkpoint)
 
     # model
@@ -70,6 +86,25 @@ def test(output_dir,
          preds_arr, 
          plot_objects=False,
          n_classes=5):
+    """
+    Predict the windows of one tile and merge the predictions per point.
+
+    Each window is predicted in groups of n_points points (and, depending on its size, again
+    with a different random grouping); the class of a point is the one predicted most often for
+    its id across groups and overlapping windows.
+
+    :param output_dir: directory for plots when plot_objects is True
+    :param number_of_workers: dataloader workers
+    :param model: model on the global DEVICE
+    :param list_files: paths of the .pt windows of the tile
+    :param n_points: points per forward pass
+    :param targets_arr: unused
+    :param preds_arr: unused
+    :param plot_objects: save prediction plots
+    :param n_classes: number of classes of the model
+    :return: labels and predicted classes of the points that went through the model, and the
+        ids of those points
+    """
     
     # net to eval mode
     model = model.eval()

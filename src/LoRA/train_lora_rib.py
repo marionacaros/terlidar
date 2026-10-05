@@ -1,3 +1,14 @@
+"""Adapt the baseline PointNet++ to RIB (TerLiDAR) with LoRA.
+
+Baseline weights (a *_NOclassifier.pt checkpoint) are copied positionally into LoraPointNet2
+and frozen; only the LoRA matrices and the classification head are trained. 20% of the files
+in <in_paths>/train_files.txt are held out for validation.
+
+Run from the repository root, e.g.
+    python src/LoRA/train_lora_rib.py --in_paths train_test_files/RIB_smallLoRA_80x80 \
+        --model_checkpoint checkpoints/seg_02-24_15-52B29_NOclassifier.pt \
+        --min_rank 32 --max_rank 32 --lora_alpha 16
+"""
 import argparse
 import torch.optim as optim
 from time import time
@@ -41,6 +52,32 @@ def train(
         checkpoint_dir='src/LoRA/checkpoints_lidarcat',
         log_dir='src/runs/lora',
         params_log_dir='src/LoRA/logs'):
+    """
+    Train LoraPointNet2 on RIB (TerLiDAR).
+    Baseline weights are copied by position: the 44 LoRA tensors that come first in the state
+    dict and the 2 head tensors that come last are skipped.
+
+    Each epoch runs train_loop over the training and validation loaders, logs loss, accuracy and
+    per-class IoU to TensorBoard, and saves a checkpoint whenever the mean validation loss improves.
+
+    :param path_list_files: folder with train_files.txt
+    :param n_feat: input channels per point
+    :param n_classes: 3 or 4
+    :param lora_fix_rank: if True every layer uses lora_max_rank
+    :param lora_min_rank: lower bound of the per-layer rank
+    :param lora_max_rank: upper bound of the per-layer rank; equal bounds give a fixed rank
+    :param lora_alpha: LoRA scaling factor
+    :param data_root: directory with the .pt windows, overriding the directories in the list
+    :param params_log_dir: directory where the table of model parameters is written
+    :param n_points: points per window returned by the dataset (train_loop then uses 4096 of them)
+    :param batch_size: batch size
+    :param epochs: number of epochs
+    :param learning_rate: Adam learning rate (cosine annealing over epochs - 10)
+    :param number_of_workers: dataloader workers
+    :param model_checkpoint: checkpoint to start from; empty or None to skip loading
+    :param checkpoint_dir: directory where the checkpoint is written
+    :param log_dir: directory for TensorBoard logs
+    """
     
     start_time = time()
 
@@ -317,8 +354,16 @@ def train(
 def train_loop(data, optimizer, ce_loss, pointnet, w_tensorboard=None, train=True,
                epoch=0, device='cuda',num_feat=5, n_classes=5, n_points=8000):
     """
+    Process one batch: keep 4096 random points of each window, rotate the batch around z by a
+    random angle, forward pass and loss; when train is True also colour dropout (with
+    probability COLOR_DROPOUT), backward pass and optimizer step.
+
+    :param data: batch from the dataloader (pc [B, n_points, D], targets [B, n_points], filenames)
+    :param train: training step if True, evaluation step otherwise
+    :param w_tensorboard: unused
+    :param epoch: unused
     :return:
-    metrics, targets, preds, last_epoch
+    metrics (dict with 'loss'), targets [B * 4096] on cpu, preds [B * 4096] on cpu
     """
     metrics = {'accuracy': []}
     pc, targets, filenames = data

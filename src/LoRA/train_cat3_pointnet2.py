@@ -1,3 +1,13 @@
+"""Train the baseline PointNet++ on ICGC-style windows (B29 or RIB/TerLiDAR).
+
+Reads <in_paths>/train_files.txt and val_files.txt; if the validation list is empty, 20% of
+the training files are held out. Saves the model with the lowest validation loss twice: the
+full checkpoint and a *_NOclassifier.pt copy without the classification head, which is the
+starting point for train_lora_rib.py.
+
+Run from the repository root, e.g.
+    python src/LoRA/train_cat3_pointnet2.py --in_paths train_test_files/B29_80x80
+"""
 import argparse
 import torch.optim as optim
 import time
@@ -38,6 +48,27 @@ def train(
         data_root=None,
         checkpoint_dir='src/LoRA/checkpoints_lidarcat',
         log_dir='src/runs/lora'):
+    """
+    Train the baseline PointNet2 on ICGC-style windows.
+    If a checkpoint is given, model and optimizer state are restored from it (strict).
+
+    Each epoch runs train_loop over the training and validation loaders, logs loss, accuracy and
+    per-class IoU to TensorBoard, and saves a checkpoint whenever the mean validation loss improves.
+
+    :param path_files: folder with train_files.txt and val_files.txt
+    :param num_feat: input channels per point
+    :param num_classes: 3, 4 or 5; wind turbines are a class of their own when > 3
+    :param device: 'cuda' or 'cpu'
+    :param data_root: directory with the .pt windows, overriding the directories in the lists
+    :param n_points: points per window returned by the dataset (train_loop then uses 4096 of them)
+    :param batch_size: batch size
+    :param epochs: number of epochs
+    :param learning_rate: Adam learning rate (cosine annealing over epochs - 10)
+    :param number_of_workers: dataloader workers
+    :param model_checkpoint: checkpoint to start from; empty or None to skip loading
+    :param checkpoint_dir: directory where the checkpoint is written
+    :param log_dir: directory for TensorBoard logs
+    """
     
     start_time = time.time()
 
@@ -292,8 +323,16 @@ def train(
 def train_loop(data, optimizer, loss, pointnet, w_tensorboard=None, train=True,
                epoch=0, device='cuda', num_feat=5, num_classes=5, n_points=8000):
     """
+    Process one batch: keep 4096 random points of each window, rotate the batch around z by a
+    random angle, forward pass and loss; when train is True also colour dropout (with
+    probability COLOR_DROPOUT), backward pass and optimizer step.
+
+    :param data: batch from the dataloader (pc [B, n_points, D], targets [B, n_points], filenames)
+    :param train: training step if True, evaluation step otherwise
+    :param w_tensorboard: unused
+    :param epoch: unused
     :return:
-    metrics, targets, preds, last_epoch
+    metrics (dict with 'loss'), targets [B * 4096] on cpu, preds [B * 4096] on cpu
     """
     metrics = {'accuracy': []}
     pc, targets, filenames = data
