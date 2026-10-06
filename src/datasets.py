@@ -542,50 +542,7 @@ class CAT3SamplingDataset(CAT3Dataset):
 
         return pc_samp, xyz, ids, n_unique_points
 
-
-    def create_2d_cv_views(self, pc, image_size=256, sample_size=None):
-         
-        # normalize axes between 0 and 1
-        pc[:, 0] = (pc[:, 0] +1) / 2
-        pc[:, 1] = (pc[:, 1] +1) / 2
-
-        # sample pc
-        if sample_size and len(pc) > sample_size:
-            pc = pc[np.random.choice(len(pc), sample_size, replace=False)]
- 
-        point_ids = pc[:, 11] # Store point IDs
-
-        # Prepare coordinate projections
-        coords = np.stack([
-            (pc[:, [0, 1, 2]]),  # XY view -> use Z as value
-            (pc[:, [0, 2, 1]]),  # XZ view -> use Y as value
-            (pc[:, [1, 2, 0]])   # YZ view -> use X as value
-        ], axis=0)  # Shape: (3, N, 3)
-
-        views = np.zeros((3, image_size, image_size), dtype=np.float32)
-        
-        # Preallocate mapping: [3, N, 3] → for each view: [point_id, x, y]
-        mappings = np.empty((3, coords.shape[1], 3), dtype=np.int32)  # [view, N, (id, x, y)]
-
-        for i in range(3):
-            x = ((coords[i, :, 0]) * (image_size - 1)).astype(int)
-            y = (((1 - coords[i, :, 1])) * (image_size  - 1)).astype(int)
-            values = coords[i, :, 2] * 255
-
-            # # Use np.maximum to preserve max depth value if overlapping
-            np.maximum.at(views[i], (y, x), values)
-
-            # Fill mapping tensor
-            mappings[i, :, 0] = point_ids        # point ID
-            mappings[i, :, 1] = x                # x
-            mappings[i, :, 2] = y                # y
-
-        return views, mappings  # views: [3, H, W], mappings: [3, N, 3]
-    
-    
-
-    
-
+  
 
 ##### -------------------------------------------- DALES DATASET ---------------------------------------------------
 

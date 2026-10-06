@@ -65,18 +65,10 @@ SAMPLES_X_CLASS_CAT3 = [
 """
 SAMPLES_X_CLASS_CAT3 = [
     480,                    # 0 ground
-    20,                    # 1 transmission towers abans 2500
+    20,                    # 1 transmission towers 
     27,                    # 2 lines
     37000                   # 3 veg
     ]
-
-# SAMPLES_X_CLASS_CAT3 = [
-#     1340000,                    # 0 ground
-#     400,                    # 1 transmission towers abans 2500
-#     500,                    # 2 lines
-#     1680000,                   # 3 veg
-#     600]                    # wind turbine 46k
-# [0.1022, 0.3098, 0.2596, 0.1022, 0.2264]
 
 # -------------------------------------------------- DALES --------------------------------------------------
 SAMPLES_X_CLASS_DALES = [
@@ -94,13 +86,3 @@ SAMPLES_X_CLASS_DALES_ALL = [
     58 * 10 ** 6,    #  buildings
     1 * 10 ** 6,    # cars and trucks
 ]
-
-# SAMPLES_X_CLASS_DALES = [
-#     178 * 10 ** 6,  #  ground
-#     0.8 * 10 ** 6,  #  power lines
-#     0.28 * 10 ** 6, #  poles
-#     121 * 10 ** 6,  #  vegetation
-#     2 * 10 ** 6,    #  fences
-#     57 * 10 ** 6,   #  buildings
-#     6 * 10 ** 6,    # cars
-# ]
