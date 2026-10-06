@@ -102,7 +102,7 @@ To ensure reproducible results and a fair evaluation of the model, we propose th
 
 | Split Type | Block IDs | Description |
 | :--- | :--- | :--- |
-| **Test Set** | `pt438656`, `pt438652`, `pt438658` | Held-out blocks for final evaluation. |
+| **Test Set** | `pt438656`, `pt438652`, `pt438658`, `pt440652` | Held-out blocks for final evaluation. |
 | **Train Set** | *All remaining blocks* | Used for model optimization and cross-validation. |
 
 > Please adhere to this split when reporting results to ensure benchmarks remain comparable across different runs.
@@ -259,8 +259,7 @@ python src/LoRA/test_lora_segmentation.py --dataset B29 --data_root /path/to/B29
 ```
 
 By default the TerLiDAR evaluation runs on blocks `pt438656`, `pt438652`, `pt438658` and
-`pt440652`. The last one is a very small block, which is why the proposed split does not list
-it. Add `--tiles pt438656 pt438652 pt438658` to evaluate exactly the proposed test split.
+`pt440652`, which is exactly the proposed test split. Use `--tiles` to evaluate a subset of them.
 Evaluation draws random groupings of the points, so use the same `--seed` (default 0) to
 compare runs.
 

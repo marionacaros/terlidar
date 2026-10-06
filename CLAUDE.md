@@ -88,6 +88,6 @@ Checkpoints are dicts with keys `model`, `optimizer`, `batch_size`, `lr`, `numbe
 ## Dataset facts worth knowing
 
 - "RIB" in code and filenames is the TerLiDAR dataset; "B29" is the source-domain ICGC block used to train the baseline.
-- Proposed TerLiDAR benchmark split: blocks `pt438656`, `pt438652`, `pt438658` are the held-out test set; everything else is train.
+- Proposed TerLiDAR benchmark split: blocks `pt438656`, `pt438652`, `pt438658`, `pt440652` are the held-out test set; everything else is train.
 - TerLiDAR class codes are the ICGC LAS codes listed in the README (2 ground, 14 power lines, 15 transmission tower, 18 other towers, ...).
 - Licensing is dual: code is MIT, dataset and pretrained weights are CC BY 4.0.
