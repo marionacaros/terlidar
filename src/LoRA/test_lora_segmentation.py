@@ -291,7 +291,7 @@ if __name__ == '__main__':
         # tiles = list(set([path_f.split('_')[-2].split('.')[0] for path_f in test_files]))
         path = os.path.dirname(test_files[0]) 
         # test tiles
-        tiles = args.tiles or ["pt438656", "pt438652","pt438658","pt440652"]
+        tiles = args.tiles or ["pt438656", "pt438652","pt438658"]
 
     elif DATASET == 'B29':
         args.in_path = args.in_path or 'train_test_files/B29_80x80'

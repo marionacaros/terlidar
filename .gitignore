@@ -9,3 +9,4 @@ src/LoRA/logs/
 src/LoRA/checkpoints_lidarcat/
 src/LoRA/metrics/
 cm_figures/
+train_test_files/

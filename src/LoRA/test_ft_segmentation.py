@@ -253,7 +253,7 @@ if __name__ == '__main__':
     parser.add_argument('--data_root', type=str, default=None,
                         help='directory with the preprocessed .pt files; the entries of the file lists are relative to it')
     parser.add_argument('--tiles', type=str, nargs='+', default=None,
-                        help='tiles (blocks) to evaluate; default: pt438656 pt438652 pt438658 pt440652')
+                        help='tiles (blocks) to evaluate; default: pt438656 pt438652 pt438658')
     parser.add_argument('--seed', type=int, default=0, help='seed for the Python, NumPy and PyTorch random generators')
     args = parser.parse_args()
     set_seed(args.seed)
@@ -303,7 +303,7 @@ if __name__ == '__main__':
 
     # SELEC TILES
     if DATASET == 'RIB':
-        tiles = args.tiles or ["pt438656", "pt438652","pt438658","pt440652"]  # RIB 
+        tiles = args.tiles or ["pt438656", "pt438652","pt438658"]  # RIB 
  
     # Initialize empty arrays here if IoU needs to be computed for the whole dataset. Result is more rigorous
     # preds_arr = np.empty(0, dtype=int)
